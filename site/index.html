@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f4ebda">
+<title>婚礼请柬 · 请选择风格</title>
+<style>
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;min-height:100%}
+  body{
+    min-height:100dvh;display:flex;align-items:center;justify-content:center;
+    padding:28px 18px calc(36px + env(safe-area-inset-bottom));
+    color:#2a2118;
+    font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+    background:radial-gradient(ellipse at 50% 0%,#f7f0e2,#e8dcc4 55%,#d9c9a8);
+  }
+  main{width:min(420px,100%);text-align:center}
+  .seal{
+    width:64px;height:64px;margin:0 auto 18px;border-radius:6px;
+    display:grid;place-items:center;
+    color:#f4ebda;background:#a63a32;
+    font-family:"Songti SC","Noto Serif SC","STSong",serif;
+    font-size:34px;letter-spacing:.04em;
+    box-shadow:0 8px 18px rgba(110,36,31,.22);
+  }
+  h1{
+    margin:0 0 8px;
+    font-family:"Songti SC","Noto Serif SC","STSong",serif;
+    font-weight:500;font-size:28px;letter-spacing:.18em;
+  }
+  p{margin:0 0 28px;color:#5c4a38;font-size:13px;letter-spacing:.22em}
+  a.card{
+    display:block;margin:0 0 14px;padding:18px 16px 16px;
+    text-decoration:none;color:inherit;
+    background:rgba(248,240,224,.86);
+    border:1px solid rgba(196,165,116,.7);
+    box-shadow:0 10px 24px rgba(42,33,24,.06);
+  }
+  a.card strong{
+    display:block;margin-bottom:6px;
+    font-family:"Songti SC","Noto Serif SC","STSong",serif;
+    font-weight:500;font-size:20px;letter-spacing:.16em;
+  }
+  a.card span{display:block;color:#7a6550;font-size:12px;letter-spacing:.12em}
+  a.card:active{transform:translateY(1px)}
+  .icp{position:fixed;left:0;right:0;bottom:0;padding:8px 12px max(10px,env(safe-area-inset-bottom));
+    text-align:center;font-size:11px}
+  .icp a{color:#7e5a34;text-decoration:none}
+</style>
+</head>
+<body>
+<main>
+  <div class="seal" aria-hidden="true">囍</div>
+  <h1>婚礼请柬</h1>
+  <p>请选择一种风格</p>
+  <a class="card" href="/wumu/"><strong>五幕小电影</strong><span>滑动放映 · 五段关于我们的片段</span></a>
+  <a class="card" href="/chinese/"><strong>新中式请柬</strong><span>宣纸朱印 · 端庄喜庆</span></a>
+</main>
+<div class="icp"><a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">蜀ICP备2026032415号-2</a></div>
+</body>
+</html>
