@@ -1,0 +1,717 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#101d3b">
+  <meta name="description" content="五幕关于我们的小片段，一份可以滑动、点击和放映的婚礼邀请。">
+  <title>我们的五幕小电影</title>
+  <style>
+    :root {
+      --ink: #101d3b;
+      --cream: #fff3d3;
+      --peach: #ffae83;
+      --gold: #ffd995;
+      --accent: #ffd995;
+      --ease: cubic-bezier(.2, .8, .2, 1);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; background: var(--ink); }
+    body {
+      color: var(--cream);
+      font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+      overflow: hidden;
+    }
+    button { font: inherit; }
+    button:focus-visible { outline: 2px solid var(--gold); outline-offset: 4px; }
+    .app {
+      position: relative;
+      min-height: 100svh;
+      overflow: hidden;
+      background: var(--ink);
+    }
+    .shell {
+      --mx: 0;
+      --my: 0;
+      position: relative;
+      width: 100%;
+      min-height: 100svh;
+      height: 100svh;
+      overflow: hidden;
+      isolation: isolate;
+      touch-action: pan-y;
+      background: #142c53;
+    }
+    .shell::before {
+      content: "";
+      position: absolute;
+      inset: -10%;
+      z-index: 4;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 18% 16%, rgba(255,255,255,.27), transparent 24%),
+        linear-gradient(148deg, rgba(10,27,61,.12), rgba(255,160,111,.11) 54%, rgba(10,27,61,.46));
+      mix-blend-mode: screen;
+      transform: translate3d(calc(var(--mx) * -9px), calc(var(--my) * -8px), 0);
+      transition: transform .55s var(--ease);
+    }
+    .chapter-track { position: absolute; inset: 0; z-index: 0; }
+    .chapter {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(1.06) translate3d(7%, 0, 0);
+      transition: opacity .88s var(--ease), transform 1.08s var(--ease);
+      background: #18325d;
+    }
+    .chapter.active {
+      opacity: 1;
+      pointer-events: auto;
+      transform: scale(1) translate3d(0, 0, 0);
+    }
+    .chapter.exit-left { opacity: 0; transform: scale(.96) translate3d(-9%, 0, 0); }
+    .chapter.exit-right { opacity: 0; transform: scale(.96) translate3d(9%, 0, 0); }
+    .chapter-art {
+      position: absolute;
+      inset: -5%;
+      width: 110%;
+      height: 110%;
+      object-fit: cover;
+      object-position: center;
+      user-select: none;
+      -webkit-user-drag: none;
+      transform: translate3d(calc(var(--mx) * -17px), calc(var(--my) * -13px), 0) scale(1.035);
+      filter: saturate(1.05) contrast(1.02);
+      transition: transform .65s var(--ease), filter .8s var(--ease);
+    }
+    .chapter.active .chapter-art { filter: saturate(1.09) contrast(1.03); }
+    .chapter[data-index="3"] .chapter-art { filter: saturate(1.08) contrast(1.06) brightness(.91); }
+    .chapter[data-index="4"] .chapter-art { filter: saturate(1.16) contrast(1.04) brightness(.9); }
+    .chapter-wash {
+      position: absolute;
+      inset: -10%;
+      z-index: 1;
+      pointer-events: none;
+      opacity: .85;
+      background:
+        radial-gradient(ellipse at 72% 12%, color-mix(in srgb, var(--accent) 45%, transparent), transparent 31%),
+        radial-gradient(ellipse at 8% 75%, rgba(255,131,112,.19), transparent 34%),
+        linear-gradient(110deg, rgba(13,38,82,.21), transparent 46%, rgba(255,202,143,.16));
+      mix-blend-mode: screen;
+      transform: translate3d(calc(var(--mx) * 10px), calc(var(--my) * 8px), 0);
+      transition: transform .7s var(--ease), opacity .7s var(--ease);
+    }
+    .chapter::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      pointer-events: none;
+      background: linear-gradient(180deg, rgba(7,20,48,.34), transparent 25%, transparent 58%, rgba(7,20,48,.48));
+    }
+    .chapter[data-index="2"]::after { background: linear-gradient(180deg, rgba(56,29,54,.25), transparent 28%, rgba(28,18,44,.44)); }
+    .chapter[data-index="3"]::after { background: linear-gradient(180deg, rgba(5,8,35,.23), transparent 27%, rgba(6,7,29,.57)); }
+    .chapter[data-index="4"]::after { background: linear-gradient(180deg, rgba(4,15,55,.28), transparent 25%, rgba(5,11,39,.62)); }
+    .grain {
+      position: absolute;
+      inset: 0;
+      z-index: 8;
+      pointer-events: none;
+      opacity: .11;
+      mix-blend-mode: soft-light;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150' viewBox='0 0 150 150'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.42'/%3E%3C/svg%3E");
+    }
+    #particles {
+      position: absolute;
+      inset: 0;
+      z-index: 6;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+    .top-ui, .chapter-copy, .chapter-number, .hotspot, .chapter-note, .bottom-ui, .toast, .transition-layer, .opening, .invite {
+      position: absolute;
+    }
+    .top-ui {
+      top: max(22px, env(safe-area-inset-top));
+      left: 22px;
+      right: 22px;
+      z-index: 12;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      letter-spacing: .16em;
+      font-size: 10px;
+      text-transform: uppercase;
+      text-shadow: 0 2px 16px rgba(8,20,50,.36);
+      transition: opacity .4s ease;
+    }
+    .app.invite-open .top-ui, .app.invite-open .bottom-ui { opacity: 0; pointer-events: none; }
+    .brand { display: inline-flex; align-items: center; gap: 9px; }
+    .brand i { width: 7px; height: 7px; border-radius: 50%; background: var(--peach); box-shadow: 0 0 0 5px rgba(255,174,131,.16); }
+    .brand small { opacity: .72; letter-spacing: .11em; }
+    .chapter-number {
+      z-index: 5;
+      top: 46%;
+      right: 20px;
+      color: rgba(255,245,215,.8);
+      font-size: 10px;
+      letter-spacing: .15em;
+      writing-mode: vertical-rl;
+      transform: translate3d(calc(var(--mx) * 24px), calc(var(--my) * 18px), 0);
+      transition: transform .55s var(--ease);
+    }
+    .chapter-copy {
+      z-index: 5;
+      top: clamp(104px, 17vh, 158px);
+      left: 23px;
+      right: 48px;
+      max-width: 430px;
+      transform: translate3d(calc(var(--mx) * 7px), calc(var(--my) * 6px), 0);
+      text-shadow: 0 5px 24px rgba(7,23,57,.3);
+      transition: transform .65s var(--ease);
+    }
+    .chapter[data-index="1"] .chapter-copy { top: clamp(92px, 15vh, 142px); }
+    .chapter[data-index="2"] .chapter-copy { top: clamp(108px, 18vh, 166px); }
+    .chapter[data-index="3"] .chapter-copy { top: clamp(105px, 17vh, 158px); }
+    .chapter[data-index="4"] .chapter-copy { top: clamp(94px, 15vh, 145px); }
+    .chapter-copy .kicker { margin: 0 0 14px; color: rgba(255,245,218,.85); font-size: 10px; letter-spacing: .21em; }
+    .chapter-copy h1, .chapter-copy h2 { margin: 0; max-width: 360px; color: #fff3cf; font-size: clamp(35px, 9.4vw, 63px); line-height: 1.07; letter-spacing: -.055em; font-weight: 700; }
+    .chapter-copy h1 em, .chapter-copy h2 em { color: var(--accent); font-style: normal; }
+    .chapter-copy .lead { max-width: 260px; margin: 17px 0 0; color: rgba(255,248,225,.84); font-size: 13px; line-height: 1.75; }
+    .hotspot {
+      z-index: 10;
+      width: 22%;
+      height: 18%;
+      border: 0;
+      border-radius: 50%;
+      padding: 0;
+      background: transparent;
+      cursor: pointer;
+      transform: translate3d(calc(var(--mx) * -4px), calc(var(--my) * -4px), 0);
+    }
+    .chapter[data-index="0"] .hotspot { right: 13%; top: 43%; width: 26%; height: 25%; }
+    .chapter[data-index="1"] .hotspot { right: 21%; top: 42%; width: 24%; height: 20%; }
+    .chapter[data-index="2"] .hotspot { left: 35%; bottom: 18%; width: 30%; height: 21%; }
+    .chapter[data-index="3"] .hotspot { left: 36%; top: 41%; width: 31%; height: 20%; }
+    .chapter[data-index="4"] .hotspot { left: 8%; top: 41%; width: 22%; height: 25%; }
+    .hotspot::before, .hotspot::after {
+      content: "";
+      position: absolute;
+      left: 50%; top: 50%;
+      border: 1px solid rgba(255,244,211,.7);
+      border-radius: 50%;
+      transform: translate(-50%, -50%) scale(.5);
+      opacity: 0;
+    }
+    .hotspot::before { width: 11px; height: 11px; }
+    .hotspot::after { width: 11px; height: 11px; }
+    .hotspot:hover::before, .hotspot:focus-visible::before { opacity: 1; animation: ring 1.5s ease-out infinite; }
+    .hotspot.active::before { opacity: 1; animation: ring .8s ease-out 2; }
+    @keyframes ring { to { transform: translate(-50%, -50%) scale(4.5); opacity: 0; } }
+    .chapter-note {
+      z-index: 5;
+      left: 23px;
+      bottom: max(90px, calc(env(safe-area-inset-bottom) + 76px));
+      color: rgba(255,246,220,.72);
+      font-size: 11px;
+      letter-spacing: .08em;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity .5s ease .35s, transform .5s var(--ease) .35s;
+    }
+    .chapter.active .chapter-note { opacity: 1; transform: translateY(0); }
+    .bottom-ui {
+      z-index: 13;
+      left: 22px;
+      right: 22px;
+      bottom: max(23px, env(safe-area-inset-bottom));
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      transition: opacity .4s ease;
+    }
+    .swipe-note { display: inline-flex; align-items: center; gap: 10px; color: rgba(255,248,227,.78); font-size: 11px; letter-spacing: .06em; text-shadow: 0 2px 14px rgba(7,23,57,.3); }
+    .swipe-note .pill { position: relative; width: 29px; height: 42px; border: 1px solid rgba(255,247,221,.58); border-radius: 20px; }
+    .swipe-note .pill::after { content: ""; position: absolute; top: 7px; left: 50%; width: 4px; height: 9px; border-radius: 4px; background: var(--cream); transform: translateX(-50%); animation: wheel 1.8s ease-in-out infinite; }
+    @keyframes wheel { 0%,100% { transform: translate(-50%, 0); opacity: .45; } 48% { transform: translate(-50%, 14px); opacity: 1; } }
+    .progress { display: flex; align-items: center; gap: 7px; }
+    .progress button { width: 7px; height: 7px; border: 0; border-radius: 50%; padding: 0; background: rgba(255,244,213,.46); cursor: pointer; transition: width .25s ease, background .25s ease, transform .25s ease; }
+    .progress button.active { width: 22px; border-radius: 10px; background: var(--accent); transform: translateY(-1px); }
+    .next-button {
+      display: grid;
+      place-items: center;
+      width: 46px;
+      height: 46px;
+      border: 1px solid rgba(255,245,216,.58);
+      border-radius: 50%;
+      color: var(--cream);
+      background: rgba(12,31,67,.18);
+      backdrop-filter: blur(9px);
+      cursor: pointer;
+      transition: transform .25s ease, background .25s ease;
+    }
+    .next-button:hover { transform: translateY(-3px); background: rgba(12,31,67,.38); }
+    .next-button span { font-size: 19px; transform: translateY(-1px); }
+    .toast {
+      z-index: 19;
+      left: 50%;
+      bottom: 21%;
+      max-width: calc(100% - 44px);
+      padding: 11px 16px;
+      border: 1px solid rgba(255,243,211,.5);
+      border-radius: 999px;
+      color: #fff5d9;
+      background: rgba(12,31,67,.55);
+      backdrop-filter: blur(12px);
+      font-size: 12px;
+      letter-spacing: .04em;
+      text-align: center;
+      opacity: 0;
+      pointer-events: none;
+      transform: translate(-50%, 14px);
+      transition: opacity .35s ease, transform .35s var(--ease);
+    }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+    .transition-layer {
+      z-index: 18;
+      inset: -20% -12%;
+      pointer-events: none;
+      opacity: 0;
+      background: var(--accent);
+      mix-blend-mode: screen;
+      transform: translateX(-120%) skewX(-12deg);
+    }
+    .app.is-transitioning .transition-layer { animation: sweep 1.08s var(--ease) both; }
+    .app[data-fx="ticket"] .transition-layer { background: linear-gradient(105deg, #ffe5a7, #f59c83 62%, #364a94); clip-path: polygon(0 15%, 100% 0, 100% 86%, 0 100%); }
+    .app[data-fx="window"] .transition-layer { background: radial-gradient(circle at 60% 56%, #fff7cf, #ffb480 35%, #3a4e9c 78%); mix-blend-mode: normal; }
+    .app[data-fx="flash"] .transition-layer { background: #fff5d6; mix-blend-mode: normal; }
+    .app[data-fx="lantern"] .transition-layer { background: radial-gradient(circle at 28% 63%, #ffe28f 0 8%, #ff9c77 24%, #1c2f75 70%); mix-blend-mode: screen; }
+    @keyframes sweep { 0% { opacity: 0; transform: translateX(-120%) skewX(-12deg); } 28% { opacity: .95; } 62% { opacity: .86; transform: translateX(4%) skewX(0); } 100% { opacity: 0; transform: translateX(120%) skewX(12deg); } }
+    .opening {
+      z-index: 30;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 32px 24px;
+      background: linear-gradient(155deg, rgba(13,35,76,.98), rgba(48,67,133,.94) 52%, rgba(219,125,111,.96));
+      transition: opacity .8s ease, transform 1s var(--ease), visibility 0s linear 1s;
+    }
+    .opening::before {
+      content: "";
+      position: absolute;
+      inset: -20%;
+      background: repeating-linear-gradient(-12deg, transparent 0 35px, rgba(255,227,177,.1) 36px 43px, transparent 44px 72px);
+      transform: rotate(-5deg) translate3d(calc(var(--mx) * 9px), calc(var(--my) * 7px), 0);
+      opacity: .6;
+    }
+    .app.started .opening { opacity: 0; transform: translateY(-100%); pointer-events: none; visibility: hidden; }
+    .opening-card { position: relative; width: min(100%, 420px); text-align: center; text-shadow: 0 4px 22px rgba(4,20,51,.25); }
+    .opening-card .eyebrow { margin: 0 0 20px; color: rgba(255,245,215,.78); font-size: 10px; letter-spacing: .24em; }
+    .opening-card h1 { margin: 0; color: #fff2ca; font-size: clamp(42px, 12vw, 72px); line-height: 1.05; letter-spacing: -.07em; }
+    .opening-card h1 em { color: var(--gold); font-style: normal; }
+    .opening-card p { margin: 20px auto 0; max-width: 260px; color: rgba(255,248,224,.82); font-size: 13px; line-height: 1.8; }
+    .start-button {
+      position: relative;
+      margin-top: 30px;
+      min-width: 156px;
+      min-height: 48px;
+      padding: 0 23px;
+      border: 1px solid rgba(255,246,218,.48);
+      border-radius: 999px;
+      color: #203765;
+      background: #ffe3a6;
+      box-shadow: 0 13px 34px rgba(11,26,61,.19);
+      cursor: pointer;
+      transition: transform .25s ease, background .25s ease;
+    }
+    .start-button:hover { transform: translateY(-3px); background: #fff0c7; }
+    .opening-foot { display: block; margin-top: 14px; color: rgba(255,247,220,.58); font-size: 10px; letter-spacing: .12em; }
+    .invite {
+      z-index: 25;
+      inset: 0;
+      display: flex;
+      align-items: flex-end;
+      padding: 24px 22px max(26px, env(safe-area-inset-bottom));
+      pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
+      clip-path: circle(0% at 50% 72%);
+      background: linear-gradient(160deg, rgba(25,48,99,.9), rgba(40,74,129,.94) 48%, rgba(213,119,103,.94));
+      transition: opacity .35s ease, clip-path 1.05s var(--ease), visibility 0s linear 1.05s;
+    }
+    .invite::before { content: ""; position: absolute; inset: 0; background: radial-gradient(circle at 67% 53%, rgba(255,234,178,.62), transparent 25%), linear-gradient(180deg, rgba(16,31,74,.08), rgba(13,27,60,.44)); mix-blend-mode: screen; }
+    .app.invite-open .invite { opacity: 1; visibility: visible; pointer-events: auto; clip-path: circle(150% at 50% 72%); transition-delay: 0s; }
+    .invite-card { position: relative; width: 100%; max-width: 520px; margin: 0 auto; padding: 24px 20px 20px; border: 1px solid rgba(255,244,214,.35); border-radius: 25px; color: #fff6df; background: rgba(10,28,66,.58); box-shadow: 0 24px 80px rgba(5,16,44,.27); backdrop-filter: blur(17px); }
+    .invite-card .label { margin: 0 0 12px; color: rgba(255,245,214,.66); font-size: 10px; letter-spacing: .23em; }
+    .invite-card h2 { margin: 0; color: #fff4d0; font-size: clamp(29px, 8vw, 43px); line-height: 1.08; letter-spacing: -.05em; }
+    .invite-card .lead { margin: 12px 0 19px; color: rgba(255,247,224,.83); font-size: 13px; line-height: 1.7; }
+    .details { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 17px; }
+    .detail { padding: 12px; border-radius: 14px; background: rgba(255,247,218,.1); }
+    .detail small { display: block; margin-bottom: 5px; color: rgba(255,247,224,.58); font-size: 10px; }
+    .detail strong { font-size: 14px; font-weight: 550; }
+    .detail.wide { grid-column: 1 / -1; }
+    .actions { display: flex; gap: 9px; }
+    .action { flex: 1; min-height: 43px; border: 1px solid rgba(255,245,218,.4); border-radius: 999px; color: #fff5db; background: rgba(255,247,218,.12); cursor: pointer; transition: transform .2s ease, background .2s ease; }
+    .action.primary { color: #203764; border-color: transparent; background: #ffe1a1; }
+    .action:hover { transform: translateY(-2px); background: rgba(255,247,218,.25); }
+    .action.primary:hover { background: #fff0c6; }
+    .close-invite { position: absolute; top: 17px; right: 17px; z-index: 2; width: 38px; height: 38px; border: 1px solid rgba(255,246,220,.4); border-radius: 50%; color: #fff4dc; background: rgba(11,30,67,.23); cursor: pointer; }
+    .brush-spark { position: absolute; z-index: 17; width: 7px; height: 7px; border-radius: 50%; pointer-events: none; background: #ffe5ac; box-shadow: 0 0 15px 3px rgba(255,178,121,.78); animation: spark .95s var(--ease) forwards; }
+    @keyframes spark { 0% { opacity: 0; transform: translate(0,0) scale(.2); } 15% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(.05); } }
+    @media (min-width: 700px) {
+      .shell { max-width: 520px; margin: 0 auto; box-shadow: 0 0 0 1px rgba(255,255,255,.06), 0 20px 80px rgba(0,0,0,.28); }
+      .invite { max-width: 520px; left: 50%; right: auto; width: 520px; transform: translateX(-50%); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app" id="app">
+    <div class="shell" id="shell" data-fx="brush">
+      <div class="chapter-track" id="chapterTrack">
+        <article class="chapter active" data-index="0" data-fx="brush" data-accent="#ffd995" aria-label="第一幕，动物园看熊猫">
+          <img class="chapter-art" src="assets/panda-zoo.webp" alt="情侣在动物园看熊猫的彩色厚涂插画" draggable="false">
+          <div class="chapter-wash"></div>
+          <div class="chapter-number">01 / 05</div>
+          <div class="chapter-copy">
+            <p class="kicker">CHAPTER ONE · THE DAY WE LOOKED UP</p>
+            <h1>把今天的风景，<br><em>留给我们一起看。</em></h1>
+            <p class="lead">故事从抬头的那一刻开始。先别急着往前走，点击画面里的小惊喜。</p>
+          </div>
+          <button class="hotspot" data-message="熊猫也抬头看了我们一眼。" aria-label="点击熊猫"></button>
+          <p class="chapter-note">点击画面 · 左右滑动继续 · 每一幕都有彩蛋</p>
+        </article>
+
+        <article class="chapter" data-index="1" data-fx="ticket" data-accent="#ffbe86" aria-label="第二幕，一起逛电影主题乐园">
+          <img class="chapter-art" src="assets/universal-studios.webp" alt="情侣一起逛电影主题乐园的彩色厚涂插画" draggable="false">
+          <div class="chapter-wash"></div>
+          <div class="chapter-number">02 / 05</div>
+          <div class="chapter-copy">
+            <p class="kicker">CHAPTER TWO · LIGHTS, CAMERA, US</p>
+            <h2>把快乐，<br><em>开到最大声。</em></h2>
+            <p class="lead">游乐园的灯亮起来，我们也刚好在一起。点击远处的光，听它为我们开场。</p>
+          </div>
+          <button class="hotspot" data-message="远处的灯一盏一盏亮起来，像电影开场。" aria-label="点击乐园地标"></button>
+          <p class="chapter-note">点击远处的灯 · 向左滑动下一幕</p>
+        </article>
+
+        <article class="chapter" data-index="2" data-fx="window" data-accent="#ffd398" aria-label="第三幕，在客厅一起吃西瓜">
+          <img class="chapter-art" src="assets/livingroom-watermelon.webp" alt="情侣在客厅一起吃西瓜的彩色厚涂插画" draggable="false">
+          <div class="chapter-wash"></div>
+          <div class="chapter-number">03 / 05</div>
+          <div class="chapter-copy">
+            <p class="kicker">CHAPTER THREE · HOME, SWEET HOME</p>
+            <h2>回家，<br><em>也是一场约会。</em></h2>
+            <p class="lead">西瓜、晚风和一整个不着急的晚上。点击桌上的夏天。</p>
+          </div>
+          <button class="hotspot" data-message="这一口西瓜，甜得刚刚好。" aria-label="点击西瓜"></button>
+          <p class="chapter-note">点击西瓜 · 光线会慢慢亮起来</p>
+        </article>
+
+        <article class="chapter" data-index="3" data-fx="flash" data-accent="#b9b9ff" aria-label="第四幕，一起去电影院">
+          <img class="chapter-art" src="assets/cinema.webp" alt="情侣在电影院看电影的彩色厚涂插画" draggable="false">
+          <div class="chapter-wash"></div>
+          <div class="chapter-number">04 / 05</div>
+          <div class="chapter-copy">
+            <p class="kicker">CHAPTER FOUR · THE SCREEN GLOWS</p>
+            <h2>坐在你身边，<br><em>电影才开场。</em></h2>
+            <p class="lead">银幕亮起的时候，我偷偷看了你一眼。点击银幕，下一帧就要来了。</p>
+          </div>
+          <button class="hotspot" data-message="嘘——电影开始了，但我更想看你。" aria-label="点击电影银幕"></button>
+          <p class="chapter-note">点击银幕 · 让画面闪一下</p>
+        </article>
+
+        <article class="chapter" data-index="4" data-fx="lantern" data-accent="#ffd382" aria-label="第五幕，一起逛夜市">
+          <img class="chapter-art" src="assets/night-market.webp" alt="情侣牵手逛夜市的彩色厚涂插画" draggable="false">
+          <div class="chapter-wash"></div>
+          <div class="chapter-number">05 / 05</div>
+          <div class="chapter-copy">
+            <p class="kicker">CHAPTER FIVE · WALK WITH ME</p>
+            <h2>把今天，<br><em>走到夜里。</em></h2>
+            <p class="lead">再一起逛一会儿，故事就会继续。点击灯笼，打开最后一幕。</p>
+          </div>
+          <button class="hotspot" data-message="今晚的灯，会一直为我们亮着。" aria-label="点击夜市灯笼"></button>
+          <p class="chapter-note">点击灯笼 · 或点击右下角进入最后一幕</p>
+        </article>
+      </div>
+
+      <div class="top-ui">
+        <span class="brand"><i></i> OUR LITTLE FILM <small>· 2026</small></span>
+        <span id="chapterLabel">A STORY IN FIVE SCENES</span>
+      </div>
+      <canvas id="particles" aria-hidden="true"></canvas>
+      <div class="grain" aria-hidden="true"></div>
+
+      <div class="bottom-ui">
+        <div class="swipe-note"><span class="pill"></span><span>左右滑动，继续放映</span></div>
+        <div class="progress" id="progress" aria-label="章节导航"></div>
+        <button class="next-button" id="nextButton" type="button" aria-label="进入下一幕"><span>→</span></button>
+      </div>
+
+      <div class="toast" id="toast" role="status"></div>
+      <div class="transition-layer" id="transitionLayer" aria-hidden="true"></div>
+
+      <section class="opening" id="opening" aria-label="故事开场">
+        <div class="opening-card">
+          <p class="eyebrow">A LITTLE STORY · 05 SCENES</p>
+          <h1>把日常，<br><em>拍成一部电影。</em></h1>
+          <p>五幕关于我们的小片段，<br>正在放映。</p>
+          <button class="start-button" id="startButton" type="button">开始放映&nbsp; →</button>
+          <span class="opening-foot">建议打开声音 · 竖屏观看</span>
+        </div>
+      </section>
+
+      <section class="invite" id="invite" aria-label="婚礼信息">
+        <button class="close-invite" id="closeInvite" type="button" aria-label="返回故事">×</button>
+        <div class="invite-card">
+          <p class="label">THE FINAL CHAPTER</p>
+          <h2>下一幕，<br>等你来见证。</h2>
+          <p class="lead">从五个日常片段，到我们人生里最重要的一场放映。请把这一天留给我们。</p>
+          <div class="details">
+            <div class="detail"><small>DATE</small><strong>2026.10.18</strong></div>
+            <div class="detail"><small>TIME</small><strong>17:30 入场</strong></div>
+            <div class="detail wide"><small>PLACE</small><strong>某某酒店 · 湖畔厅</strong></div>
+          </div>
+          <div class="actions">
+            <button class="action primary" id="calendarButton" type="button">加入日历</button>
+            <button class="action" id="replayButton" type="button">重新放映</button>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    (() => {
+      const app = document.getElementById('app');
+      const shell = document.getElementById('shell');
+      const chapters = Array.from(document.querySelectorAll('.chapter'));
+      const progress = document.getElementById('progress');
+      const nextButton = document.getElementById('nextButton');
+      const startButton = document.getElementById('startButton');
+      const closeInvite = document.getElementById('closeInvite');
+      const replayButton = document.getElementById('replayButton');
+      const calendarButton = document.getElementById('calendarButton');
+      const toast = document.getElementById('toast');
+      const chapterLabel = document.getElementById('chapterLabel');
+      const canvas = document.getElementById('particles');
+      const ctx = canvas.getContext('2d');
+      let current = 0;
+      let busy = false;
+      let dpr = Math.min(window.devicePixelRatio || 1, 2);
+      let w = 0, h = 0, raf = 0, toastTimer = 0;
+      let startX = 0, startY = 0, moved = false;
+      const particles = [];
+      const particleColors = ['#fff1bd', '#ffd99f', '#fff9e8', '#ffb68f', '#b6e5df'];
+      const labels = ['A STORY IN FIVE SCENES', 'LIGHTS, CAMERA, US', 'HOME, SWEET HOME', 'THE SCREEN GLOWS', 'WALK WITH ME'];
+
+      chapters.forEach((chapter, index) => {
+        const dot = document.createElement('button');
+        dot.type = 'button';
+        dot.dataset.index = index;
+        dot.setAttribute('aria-label', `第 ${index + 1} 幕`);
+        if (index === 0) dot.classList.add('active');
+        dot.addEventListener('click', (event) => {
+          event.stopPropagation();
+          goTo(index, index > current ? 1 : -1);
+        });
+        progress.appendChild(dot);
+      });
+
+      const dots = Array.from(progress.querySelectorAll('button'));
+
+      function resizeCanvas() {
+        const rect = shell.getBoundingClientRect();
+        w = rect.width;
+        h = rect.height;
+        dpr = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width = Math.round(w * dpr);
+        canvas.height = Math.round(h * dpr);
+        canvas.style.width = `${w}px`;
+        canvas.style.height = `${h}px`;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        particles.length = 0;
+        const count = Math.min(58, Math.max(30, Math.round(w / 6)));
+        for (let i = 0; i < count; i += 1) particles.push(makeParticle(true));
+      }
+
+      function makeParticle(initial) {
+        return {
+          x: Math.random() * w,
+          y: initial ? Math.random() * h : h + 12,
+          r: Math.random() * 1.8 + .45,
+          a: Math.random() * .5 + .2,
+          vy: -(Math.random() * .16 + .07),
+          vx: (Math.random() - .5) * .13,
+          tw: Math.random() * Math.PI * 2,
+          c: particleColors[Math.floor(Math.random() * particleColors.length)]
+        };
+      }
+
+      function tick() {
+        ctx.clearRect(0, 0, w, h);
+        const time = performance.now() * .001;
+        for (const particle of particles) {
+          particle.y += particle.vy;
+          particle.x += particle.vx;
+          particle.tw += .022;
+          if (particle.y < -12) Object.assign(particle, makeParticle(false));
+          const pulse = particle.a * (.7 + Math.sin(time * 1.45 + particle.tw) * .3);
+          ctx.globalAlpha = pulse;
+          ctx.fillStyle = particle.c;
+          ctx.beginPath();
+          ctx.arc(particle.x, particle.y, particle.r, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+        raf = requestAnimationFrame(tick);
+      }
+
+      function setParallax(clientX, clientY) {
+        const rect = shell.getBoundingClientRect();
+        const mx = Math.max(-1, Math.min(1, ((clientX - rect.left) / rect.width) * 2 - 1));
+        const my = Math.max(-1, Math.min(1, ((clientY - rect.top) / rect.height) * 2 - 1));
+        shell.style.setProperty('--mx', mx.toFixed(3));
+        shell.style.setProperty('--my', my.toFixed(3));
+      }
+
+      function showToast(message) {
+        toast.textContent = message;
+        toast.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toast.classList.remove('show'), 2400);
+      }
+
+      function createSparks(x, y, amount = 15) {
+        for (let i = 0; i < amount; i += 1) {
+          const spark = document.createElement('i');
+          spark.className = 'brush-spark';
+          spark.style.left = `${x}px`;
+          spark.style.top = `${y}px`;
+          spark.style.setProperty('--tx', `${(Math.random() - .5) * 150}px`);
+          spark.style.setProperty('--ty', `${(Math.random() - .5) * 120 - 24}px`);
+          shell.appendChild(spark);
+          setTimeout(() => spark.remove(), 1000);
+        }
+      }
+
+      function updateChrome() {
+        dots.forEach((dot, index) => dot.classList.toggle('active', index === current));
+        chapterLabel.textContent = labels[current];
+        nextButton.setAttribute('aria-label', current === chapters.length - 1 ? '打开婚礼信息' : '进入下一幕');
+        nextButton.querySelector('span').textContent = current === chapters.length - 1 ? '✦' : '→';
+        shell.style.setProperty('--accent', chapters[current].dataset.accent);
+      }
+
+      function goTo(target, direction = 1) {
+        if (busy || target < 0 || target > chapters.length - 1 || target === current || app.classList.contains('invite-open')) return;
+        busy = true;
+        const oldChapter = chapters[current];
+        const newChapter = chapters[target];
+        app.dataset.fx = newChapter.dataset.fx;
+        shell.style.setProperty('--accent', newChapter.dataset.accent);
+        app.classList.add('is-transitioning');
+        oldChapter.classList.remove('active');
+        oldChapter.classList.add(direction > 0 ? 'exit-left' : 'exit-right');
+        newChapter.classList.add('active');
+        current = target;
+        updateChrome();
+        setTimeout(() => {
+          oldChapter.classList.remove('exit-left', 'exit-right');
+          app.classList.remove('is-transitioning');
+          busy = false;
+        }, 1050);
+      }
+
+      function openInvite() {
+        if (busy || app.classList.contains('invite-open')) return;
+        app.classList.add('invite-open');
+      }
+
+      function closeInvitePanel() {
+        app.classList.remove('invite-open');
+      }
+
+      function replay() {
+        closeInvitePanel();
+        if (current !== 0) {
+          chapters[current].classList.remove('active');
+          chapters[0].classList.add('active');
+          chapters.forEach((chapter, index) => index !== 0 && chapter.classList.remove('exit-left', 'exit-right'));
+          current = 0;
+          updateChrome();
+        }
+        showToast('重新放映，从第一幕开始。');
+      }
+
+      shell.addEventListener('pointermove', (event) => {
+        setParallax(event.clientX, event.clientY);
+        if (Math.abs(event.clientX - startX) > 10 || Math.abs(event.clientY - startY) > 10) moved = true;
+      });
+      shell.addEventListener('pointerdown', (event) => {
+        startX = event.clientX;
+        startY = event.clientY;
+        moved = false;
+      });
+      shell.addEventListener('pointerup', (event) => {
+        const dx = event.clientX - startX;
+        const dy = event.clientY - startY;
+        if (!moved || Math.abs(dx) <= 58 || Math.abs(dx) <= Math.abs(dy)) return;
+        if (dx < 0 && current < chapters.length - 1) goTo(current + 1, 1);
+        if (dx > 0 && current > 0) goTo(current - 1, -1);
+      });
+      shell.addEventListener('wheel', (event) => {
+        if (Math.abs(event.deltaX) > Math.abs(event.deltaY) && Math.abs(event.deltaX) > 35) {
+          event.preventDefault();
+          if (event.deltaX > 0 && current < chapters.length - 1) goTo(current + 1, 1);
+          if (event.deltaX < 0 && current > 0) goTo(current - 1, -1);
+        }
+      }, { passive: false });
+
+      chapters.forEach((chapter) => {
+        const hotspot = chapter.querySelector('.hotspot');
+        hotspot.addEventListener('click', (event) => {
+          event.stopPropagation();
+          if (!chapter.classList.contains('active')) return;
+          const rect = hotspot.getBoundingClientRect();
+          const shellRect = shell.getBoundingClientRect();
+          hotspot.classList.remove('active');
+          void hotspot.offsetWidth;
+          hotspot.classList.add('active');
+          createSparks(rect.left - shellRect.left + rect.width / 2, rect.top - shellRect.top + rect.height / 2);
+          showToast(hotspot.dataset.message);
+        });
+      });
+
+      startButton.addEventListener('click', () => {
+        app.classList.add('started');
+        setTimeout(() => showToast('左右滑动，或点击画面里的彩蛋。'), 900);
+      });
+      nextButton.addEventListener('click', (event) => {
+        event.stopPropagation();
+        if (current === chapters.length - 1) openInvite();
+        else goTo(current + 1, 1);
+      });
+      closeInvite.addEventListener('click', closeInvitePanel);
+      replayButton.addEventListener('click', replay);
+      calendarButton.addEventListener('click', () => showToast('这里可以接入你的日历链接。'));
+      window.addEventListener('resize', resizeCanvas, { passive: true });
+      window.addEventListener('keydown', (event) => {
+        if (event.key === 'ArrowRight' && current < chapters.length - 1) goTo(current + 1, 1);
+        if (event.key === 'ArrowLeft' && current > 0) goTo(current - 1, -1);
+        if (event.key === 'Escape') closeInvitePanel();
+      });
+      resizeCanvas();
+      updateChrome();
+      tick();
+      window.addEventListener('pagehide', () => cancelAnimationFrame(raf));
+    })();
+  </script>
+</body>
+</html>

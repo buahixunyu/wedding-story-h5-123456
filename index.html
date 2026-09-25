@@ -1,0 +1,712 @@
+<!-- AI生成 -->
+<!doctype html>
+<!-- 新中式电子请柬 · 开场打印机吐纸 + 正式请柬 -->
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="format-detection" content="telephone=no">
+<meta name="theme-color" content="#0c0a08">
+<meta name="description" content="谨订良辰，敬备喜筵。一份端庄喜庆的婚礼邀请。">
+<title>婚礼请柬 · 敬备喜筵</title>
+<style>
+  :root{
+    --paper:#f4ebda; --paper-2:#ebe0c8;
+    --ink:#2a2118; --ink-soft:#5c4a38;
+    --red:#a63a32; --red-deep:#6e241f;
+    --gold:#c4a574; --gold-soft:#d4bc92;
+    --cream:#f8f0e0;
+    --serif:"Songti SC","Noto Serif SC","STSong",Georgia,serif;
+    --sans:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+    --kai:"STKaiti","KaiTi","楷体",var(--serif);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0;height:100%}
+  body{
+    color:var(--ink);font-family:var(--sans);background:#e8dcc4;
+    -webkit-text-size-adjust:100%;
+    user-select:none;-webkit-user-select:none;
+  }
+  body.booting{overflow:hidden}
+  body.booting .scroll{pointer-events:none}
+  body.booting{overflow:hidden}
+  body.booting .scroll{pointer-events:none}
+
+  /* ===== 请柬主体 ===== */
+  .app{
+    min-height:100%;display:flex;justify-content:center;
+    background:radial-gradient(ellipse at 50% 0%,#f7f0e2,#e8dcc4 55%,#d9c9a8);
+  }
+  .shell{
+    position:relative;width:100%;max-width:430px;min-height:100%;
+    background:linear-gradient(180deg,#f7f0e3,#f2e7d3 40%,#ebe0c8);
+    box-shadow:0 0 0 1px rgba(110,36,31,.08),0 18px 60px rgba(60,40,20,.18);
+    overflow:hidden;
+  }
+  .scroll{
+    position:relative;z-index:1;height:100vh;height:100dvh;
+    overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;
+  }
+  .frame{
+    position:relative;margin:22px 18px;padding:36px 22px 30px;
+    border:1px solid rgba(196,165,116,.55);
+  }
+  .frame::before{content:"";position:absolute;inset:5px;border:1px solid rgba(196,165,116,.35)}
+  .frame::after{content:"";position:absolute;inset:11px;border:1px solid rgba(166,58,50,.12)}
+  .corner{position:absolute;width:14px;height:14px;border-color:var(--gold);border-style:solid}
+  .corner.tl{left:-1px;top:-1px;border-width:2px 0 0 2px}
+  .corner.tr{right:-1px;top:-1px;border-width:2px 2px 0 0}
+  .corner.bl{left:-1px;bottom:-1px;border-width:0 0 2px 2px}
+  .corner.br{right:-1px;bottom:-1px;border-width:0 2px 2px 0}
+  .rule{display:flex;align-items:center;justify-content:center;gap:10px;margin:14px 0;color:var(--gold)}
+  .rule::before,.rule::after{content:"";height:1px;flex:1;max-width:72px;background:linear-gradient(90deg,transparent,var(--gold-soft),transparent)}
+  .rule i{width:6px;height:6px;transform:rotate(45deg);background:var(--red);opacity:.75}
+  .eyebrow{margin:0;text-align:center;font-size:11px;letter-spacing:.34em;text-indent:.34em;color:var(--ink-soft);opacity:.78}
+
+  .cover{
+    min-height:100vh;min-height:100dvh;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:48px 24px 36px;text-align:center;
+  }
+  .cover-card{
+    width:min(78%,300px);padding:34px 22px 30px;text-align:center;
+    background:
+      linear-gradient(180deg,rgba(60,40,20,.05),transparent 22px),
+      linear-gradient(180deg,#f7f1e4,#f1e6d2);
+    border:1px solid rgba(196,165,116,.6);
+    box-shadow:0 16px 40px rgba(70,45,20,.14);
+  }
+  .cover-card .c-en{margin:0;font-size:10px;letter-spacing:.34em;color:rgba(92,74,56,.6)}
+  .cover-xi{margin:12px 0 4px;font-family:var(--serif);font-size:78px;line-height:1;color:var(--red);font-weight:600}
+  .cover h1{margin:8px 0 0;font-family:var(--serif);font-size:clamp(24px,7vw,32px);font-weight:600;letter-spacing:.14em}
+  .cover .date-line{margin:8px 0 0;font-family:var(--serif);font-size:14px;letter-spacing:.2em;color:var(--ink-soft)}
+  .cover-card .c-rule{display:flex;align-items:center;justify-content:center;gap:8px;margin:16px 0;color:var(--gold)}
+  .cover-card .c-rule::before,.cover-card .c-rule::after{content:"";height:1px;flex:1;max-width:54px;background:linear-gradient(90deg,transparent,var(--gold-soft),transparent)}
+  .cover-card .c-rule i{width:5px;height:5px;transform:rotate(45deg);background:var(--red)}
+  .cover-card .c-line{margin:0;font-family:var(--kai);font-size:14px;letter-spacing:.12em;line-height:2;color:var(--ink-soft)}
+  .cover-card .c-line .em{font-family:var(--serif);color:var(--red)}
+  .scroll-hint{margin-top:28px;display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--ink-soft);font-size:13px;letter-spacing:.16em}
+  .scroll-hint .chev{width:10px;height:10px;border-right:1.5px solid var(--red);border-bottom:1.5px solid var(--red);transform:rotate(45deg);animation:bob 1.6s ease-in-out infinite}
+  @keyframes bob{0%,100%{transform:rotate(45deg) translateY(0);opacity:.4}50%{transform:rotate(45deg) translateY(5px);opacity:1}}
+
+  .invite-body{text-align:center}
+  .invite-body h2{margin:0 0 18px;font-family:var(--serif);font-size:clamp(22px,6.5vw,28px);font-weight:600;letter-spacing:.2em;color:var(--red-deep)}
+  .prose{margin:0 auto;max-width:300px;font-family:var(--kai);font-size:15px;line-height:2.1;letter-spacing:.12em}
+  .prose p{margin:0 0 10px}
+  .prose .em{color:var(--red);font-family:var(--serif)}
+  .names-block{margin:22px 0 6px;font-family:var(--serif);font-size:20px;letter-spacing:.28em}
+
+  .memories{padding:8px 0 4px}
+  .memories .head{text-align:center;margin-bottom:14px}
+  .memories h3{margin:0 0 6px;font-family:var(--serif);font-size:18px;letter-spacing:.28em;color:var(--red-deep);font-weight:600}
+  .memories .note{margin:0;font-size:12px;color:var(--ink-soft);letter-spacing:.14em;opacity:.8}
+  .strip{
+    overflow:hidden;padding:6px 0 16px;
+    -webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);
+    mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);
+  }
+  .strip-track{display:flex;width:max-content;animation:stripRoll 36s linear infinite;will-change:transform}
+  .strip:hover .strip-track,.strip-track.paused{animation-play-state:paused}
+  .strip-group{display:flex;gap:12px;padding:0 10px}
+  @keyframes stripRoll{from{transform:translate3d(0,0,0)}to{transform:translate3d(-50%,0,0)}}
+  .photo{flex:0 0 68vw;max-width:280px;border:1px solid rgba(196,165,116,.55);padding:6px;background:var(--cream);box-shadow:0 8px 22px rgba(70,45,20,.1);margin:0}
+  .photo img{display:block;width:100%;aspect-ratio:3/4;object-fit:cover;background:var(--paper-2)}
+  .photo figcaption{margin:8px 4px 4px;font-family:var(--kai);font-size:12px;letter-spacing:.14em;color:var(--ink-soft);text-align:center}
+
+  .timeline{list-style:none;margin:8px 0 0;padding:4px 8px 4px 28px;position:relative}
+  .timeline::before{content:"";position:absolute;left:12px;top:14px;bottom:14px;width:1px;background:linear-gradient(180deg,var(--gold-soft),rgba(196,165,116,.15))}
+  .timeline li{position:relative;padding:10px 0 10px 8px}
+  .timeline li::before{content:"";position:absolute;left:-21px;top:18px;width:8px;height:8px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 3px rgba(196,165,116,.22)}
+  .timeline .t{display:block;font-family:var(--serif);font-size:15px;letter-spacing:.12em;color:var(--red);margin-bottom:2px}
+  .timeline .d{display:block;font-size:13px;line-height:1.7;color:var(--ink-soft);letter-spacing:.06em}
+  .timeline .d b{display:block;color:var(--ink);font-weight:600;font-family:var(--serif);letter-spacing:.14em}
+
+  .place{text-align:center}
+  .place h3{margin:0 0 16px;font-family:var(--serif);font-size:18px;letter-spacing:.28em;color:var(--red-deep);font-weight:600}
+  .facts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+  .fact{padding:12px 10px;border:1px solid rgba(196,165,116,.4);background:rgba(248,240,224,.55)}
+  .fact.wide{grid-column:1/-1}
+  .fact small{display:block;font-size:10px;letter-spacing:.22em;color:var(--gold);margin-bottom:6px}
+  .fact strong{display:block;font-family:var(--serif);font-size:15px;font-weight:600;letter-spacing:.06em;line-height:1.45}
+  .actions{display:flex;flex-direction:column;gap:10px;margin-top:18px}
+  .action{
+    appearance:none;border:1px solid var(--red);background:var(--red);color:var(--cream);
+    min-height:46px;padding:0 18px;cursor:pointer;
+    font-family:var(--serif);font-size:15px;letter-spacing:.22em;
+  }
+  .action:active{transform:scale(.98);opacity:.92}
+  .action.ghost{background:transparent;color:var(--red-deep);border-color:rgba(166,58,50,.45)}
+  .action.gold{background:transparent;color:var(--ink);border-color:rgba(196,165,116,.7)}
+
+  .closing{text-align:center;padding:20px 24px 72px}
+  .bless-seal{
+    width:86px;height:86px;margin:18px auto 16px;display:grid;place-items:center;
+    border:2px solid rgba(166,58,50,.45);
+  }
+  .bless-seal span{font-family:var(--serif);font-size:16px;line-height:1.25;color:var(--red);letter-spacing:.12em;font-weight:600}
+  .closing p{margin:0;font-family:var(--kai);font-size:14px;letter-spacing:.18em;color:var(--ink-soft);line-height:2}
+  .closing .en{margin-top:14px;font-family:var(--serif);font-size:11px;letter-spacing:.28em;color:rgba(92,74,56,.5)}
+
+  .reveal{opacity:0;transform:translateY(18px);transition:opacity .9s ease,transform .9s cubic-bezier(.2,.8,.2,1)}
+  .reveal.in{opacity:1;transform:none}
+
+  .icp{
+    position:fixed;left:0;right:0;bottom:0;z-index:35;
+    padding:6px 12px max(8px,calc(env(safe-area-inset-bottom) + 4px));
+    text-align:center;font-size:11px;color:rgba(92,74,56,.78);
+    background:linear-gradient(180deg,rgba(244,235,218,0),rgba(244,235,218,.92) 40%);
+    pointer-events:none;
+  }
+  .icp a{color:#7e5a34;text-decoration:none;pointer-events:auto;border-bottom:1px solid rgba(126,90,52,.25)}
+
+  .music{
+    position:fixed;z-index:30;right:max(14px,calc(50% - 215px + 14px));
+    top:max(16px,env(safe-area-inset-top));
+    width:38px;height:38px;border-radius:50%;display:grid;place-items:center;
+    background:rgba(248,240,224,.88);border:1px solid rgba(196,165,116,.65);
+    color:var(--red-deep);box-shadow:0 4px 14px rgba(70,45,20,.12);cursor:pointer;
+  }
+  .music.mute{opacity:.55}
+  .music svg{width:18px;height:18px}
+  .music .wave-off{display:none}
+  .music.mute .wave-on{display:none}
+  .music.mute .wave-off{display:block}
+
+  .toast{
+    position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(12px);
+    z-index:50;padding:10px 18px;background:rgba(42,33,24,.92);color:var(--cream);
+    font-size:13px;letter-spacing:.1em;border-radius:2px;
+    opacity:0;pointer-events:none;transition:opacity .25s ease,transform .25s ease;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  /* ===== 开场：打印机吐出请柬 ===== */
+  .boot{
+    position:fixed;inset:0;z-index:60;overflow:hidden;
+    background:
+      radial-gradient(ellipse 80% 42% at 50% 18%,rgba(120,72,32,.45),transparent 70%),
+      radial-gradient(ellipse 120% 80% at 50% 110%,#070504,#140e0a 60%);
+    transition:opacity .7s ease,visibility .7s ease;
+  }
+  .boot.hide{opacity:0;visibility:hidden;pointer-events:none}
+  .boot-stage{
+    position:absolute;left:50%;top:0;bottom:0;transform:translateX(-50%);
+    width:min(100vw,430px);height:100%;
+  }
+  .boot-img{
+    position:absolute;inset:0;z-index:3;display:block;width:100%;height:100%;
+    object-fit:cover;object-position:center top;
+    user-select:none;-webkit-user-drag:none;pointer-events:none;
+  }
+  .boot.printing .boot-stage,.boot.ready .boot-stage{background:#1a100c}
+  .boot.printing .boot-img,.boot.ready .boot-img{
+    position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center top;
+  }
+  .paper-rail{
+    position:absolute;z-index:4;left:16%;width:68%;top:20.6%;
+    height:min(64vh,520px);overflow:hidden;
+  }
+  .paper-sheet{
+    position:absolute;left:0;right:0;top:0;height:100%;
+    transform:translateY(-101%);
+    background:
+      linear-gradient(180deg,rgba(60,40,20,.22),transparent 14px),
+      linear-gradient(180deg,#f7f1e4,#f1e6d2);
+    box-shadow:0 8px 16px rgba(0,0,0,.28);
+    transition:transform 4.2s linear;
+  }
+  .boot.printing .paper-sheet{transform:translateY(0)}
+  .paper-sheet::before{content:"";position:absolute;left:8px;right:8px;top:14px;bottom:14px;border:1px solid rgba(196,165,116,.55)}
+  .ink-on-paper{
+    position:relative;height:100%;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;text-align:center;
+    padding:0 16px 8vh;color:var(--ink);
+  }
+  .ink-mark{font-family:var(--serif);font-size:11px;letter-spacing:.42em;text-indent:.42em;color:var(--gold)}
+  .ink-title{
+    margin:14px 0;font-family:var(--serif);font-weight:600;line-height:1;
+    font-size:58px;letter-spacing:.34em;text-indent:.34em;color:var(--red-deep);
+  }
+  .ink-rule{display:flex;align-items:center;justify-content:center;gap:8px;color:var(--gold)}
+  .ink-rule::before,.ink-rule::after{content:"";height:1px;width:36px;background:linear-gradient(90deg,transparent,var(--gold-soft),transparent)}
+  .ink-rule i{width:5px;height:5px;transform:rotate(45deg);background:var(--red)}
+  .ink-seal{
+    margin-top:22px;width:62px;height:62px;display:grid;place-items:center;
+    border:1.5px solid rgba(166,58,50,.55);
+    font-family:var(--serif);font-size:13px;line-height:1.25;letter-spacing:.12em;
+    color:var(--red);font-weight:600;
+  }
+
+  .boot-panel{
+    position:absolute;left:50%;top:42%;z-index:10;text-align:center;
+    width:min(300px,78%);transform:translateX(-50%);
+    transition:opacity .45s ease;
+  }
+  .boot.printing .boot-panel{opacity:0;visibility:hidden;pointer-events:none}
+  .boot-kicker{
+    margin:0 0 14px;font-size:10px;letter-spacing:.46em;text-indent:.46em;color:rgba(120,96,64,.7);
+  }
+  .boot-copy .tap{font-weight:700;color:#a63a32}
+  .boot-help{
+    appearance:none;cursor:pointer;margin-top:26px;
+    border:0;border-bottom:1px solid rgba(120,96,64,.6);background:none;
+    padding:0 0 5px;color:#6e5340;
+    font-family:var(--serif);font-size:14px;letter-spacing:.34em;
+  }
+  .boot-help:active{opacity:.6}
+  .boot-hint{
+    position:absolute;left:0;right:0;bottom:0;z-index:12;text-align:center;
+    padding:0 28px calc(30px + env(safe-area-inset-bottom));
+    opacity:0;pointer-events:none;
+    transition:opacity .6s ease;
+  }
+  .boot.ready .boot-hint{opacity:1}
+  .boot-hint span{font-family:var(--serif);font-size:13px;letter-spacing:.22em;color:rgba(246,239,226,.8)}
+  .boot-hint .chev{
+    display:block;width:9px;height:9px;margin:10px auto 0;
+    border-right:1.5px solid rgba(246,239,226,.8);border-bottom:1.5px solid rgba(246,239,226,.8);
+    transform:rotate(45deg);animation:bob 1.6s ease-in-out infinite;
+  }
+  .boot-skip{
+    position:absolute;right:16px;top:max(14px,env(safe-area-inset-top));z-index:11;
+    appearance:none;border:0;background:none;cursor:pointer;
+    color:rgba(92,74,56,.6);font-size:12px;letter-spacing:.14em;
+  }
+
+  @media (min-width:480px){.photo{flex-basis:240px;max-width:240px}}
+  @media (prefers-reduced-motion:reduce){
+    .reveal{opacity:1;transform:none;transition:none}
+    .scroll-hint .chev{animation:none}
+    .strip-track{animation:none}
+    .paper-sheet{transition:none}
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="shell">
+    <div class="scroll" id="scroll">
+      <section class="cover" aria-label="封面">
+        <div class="cover-card">
+          <p class="c-en">WEDDING INVITATION</p>
+          <div class="cover-xi" aria-hidden="true">囍</div>
+          <h1 id="coverNames">新郎 &amp; 新娘</h1>
+          <p class="date-line" id="coverDate">2026.10.18</p>
+          <div class="c-rule"><i></i></div>
+          <p class="c-line">谨订于 <span class="em" id="coverDateCN">2026年10月18日</span></p>
+          <p class="c-line">敬备喜筵 · 恭候光临</p>
+        </div>
+        <div class="scroll-hint"><span>轻触下滑，查看请柬内页</span><span class="chev" aria-hidden="true"></span></div>
+      </section>
+
+      <section class="reveal" aria-label="请柬正文">
+        <div class="frame invite-body">
+          <span class="corner tl"></span><span class="corner tr"></span>
+          <span class="corner bl"></span><span class="corner br"></span>
+          <p class="eyebrow">谨 定 于</p>
+          <div class="rule"><i></i></div>
+          <h2>结婚典礼</h2>
+          <div class="prose">
+            <p>我俩谨订于公历 <span class="em" id="textDate">2026年10月18日</span></p>
+            <p>农历良辰，举行结婚典礼</p>
+            <p>敬备喜筵 · 恭候光临</p>
+          </div>
+          <div class="rule"><i></i></div>
+          <p class="names-block" id="textNames">新郎 · 新娘</p>
+          <p class="eyebrow" style="margin-top:18px">敬 邀</p>
+        </div>
+      </section>
+
+      <section class="memories reveal" aria-label="时光片段">
+        <div class="head"><h3>时光片段</h3><p class="note">那些一起走过的寻常日子</p></div>
+        <div class="strip" id="photoStrip">
+          <div class="strip-track" id="photoTrack">
+            <div class="strip-group">
+              <figure class="photo">
+                <img src="assets/panda-zoo.webp" alt="动物园看熊猫" draggable="false" loading="lazy" decoding="async">
+                <figcaption>动物园 · 看熊猫</figcaption>
+              </figure>
+              <figure class="photo">
+                <img src="assets/universal-studios.webp" alt="游乐园" draggable="false" loading="lazy" decoding="async">
+                <figcaption>游乐园 · 那年夏天</figcaption>
+              </figure>
+              <figure class="photo">
+                <img src="assets/livingroom-watermelon.webp" alt="客厅吃西瓜" draggable="false" loading="lazy" decoding="async">
+                <figcaption>家 · 一半西瓜</figcaption>
+              </figure>
+              <figure class="photo">
+                <img src="assets/cinema.webp" alt="电影院" draggable="false" loading="lazy" decoding="async">
+                <figcaption>电影院 · 并肩坐着</figcaption>
+              </figure>
+              <figure class="photo">
+                <img src="assets/night-market.webp" alt="夜市" draggable="false" loading="lazy" decoding="async">
+                <figcaption>夜市 · 灯火可亲</figcaption>
+              </figure>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="reveal" aria-label="当日流程">
+        <div class="frame">
+          <span class="corner tl"></span><span class="corner tr"></span>
+          <span class="corner bl"></span><span class="corner br"></span>
+          <p class="eyebrow">当 日 流 程</p>
+          <div class="rule"><i></i></div>
+          <ul class="timeline" id="timeline"></ul>
+        </div>
+      </section>
+
+      <section class="place reveal" aria-label="婚礼场地">
+        <div class="frame">
+          <span class="corner tl"></span><span class="corner tr"></span>
+          <span class="corner bl"></span><span class="corner br"></span>
+          <h3>婚 礼 场 地</h3>
+          <div class="facts">
+            <div class="fact"><small>DATE</small><strong id="factDate">2026.10.18</strong></div>
+            <div class="fact"><small>TIME</small><strong id="factTime">17:30 签到</strong></div>
+            <div class="fact wide"><small>PLACE</small><strong id="factPlace">湖畔礼堂 · 三楼宴会厅</strong></div>
+            <div class="fact wide"><small>ADDRESS</small><strong id="factAddress">示例市示例区湖畔路 88 号</strong></div>
+          </div>
+          <div class="actions">
+            <button class="action" id="mapButton" type="button">导航到场地</button>
+            <button class="action ghost" id="copyButton" type="button">复制地址</button>
+            <button class="action gold" id="calendarButton" type="button">加入日历</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="closing reveal" aria-label="祝福">
+        <p class="eyebrow">恭 候 光 临</p>
+        <div class="bless-seal" aria-hidden="true"><span>百年<br>好合</span></div>
+        <p id="closingNames">新郎 &amp; 新娘</p>
+        <p>暨双方家长 敬邀</p>
+        <p class="en">WITH LOVE &amp; GRATITUDE</p>
+      </section>
+    </div>
+  </div>
+</div>
+
+<div class="icp"><a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">蜀ICP备2026032415号-2</a></div>
+
+<button class="music" id="music" type="button" aria-label="关闭背景音乐" aria-pressed="true">
+  <svg class="wave-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+    <path d="M4 10v4M8 7v10M12 4v16M16 8v8M20 10v4" stroke-linecap="round"/>
+  </svg>
+  <svg class="wave-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+    <path d="M4 10v4M8 7v10M12 4v16" stroke-linecap="round"/>
+    <path d="M16 9l5 6M21 9l-5 6" stroke-linecap="round"/>
+  </svg>
+</button>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<div class="boot" id="boot" aria-label="请柬加载">
+  <div class="boot-stage">
+    <div class="paper-rail">
+      <div class="paper-sheet">
+        <div class="ink-on-paper" aria-hidden="true">
+          <div class="ink-mark">WEDDING</div>
+          <div class="ink-title">请柬</div>
+          <div class="ink-rule"><i></i></div>
+          <div class="ink-seal">恭请<br>光临</div>
+        </div>
+      </div>
+    </div>
+    <img class="boot-img" id="bootImg" alt="" draggable="false" decoding="async">
+    <button class="boot-skip" id="skipBtn" type="button">跳过</button>
+  </div>
+  <div class="boot-panel" id="bootPanel">
+    <p class="boot-copy">小李和可可的请柬<br>正在疯狂加载中。。。</p>
+    <p class="boot-copy"><span class="tap">点击屏幕</span><br>为新人助力</p>
+  </div>
+  <div class="boot-hint"><span>轻触展开请柬</span><i class="chev"></i></div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var CONFIG = {
+    groom: '新郎',
+    bride: '新娘',
+    dateText: '2026.10.18',
+    dateISO: '20261018',
+    dateCN: '2026年10月18日',
+    timeText: '17:30 签到',
+    venue: '湖畔礼堂 · 三楼宴会厅',
+    address: '示例市示例区湖畔路 88 号',
+    lng: 116.397428,
+    lat: 39.90923,
+    timeline: [
+      { time: '17:30', title: '签到 · 迎宾', desc: '茶歇、合影与祝福' },
+      { time: '18:18', title: '仪式开始', desc: '请提前十分钟入席' },
+      { time: '19:00', title: '晚宴 · 敬酒', desc: '一起吃到很晚' },
+      { time: '21:00', title: '送客', desc: '记得带走喜糖' }
+    ]
+  };
+
+  var $ = function (id) { return document.getElementById(id); };
+  var toastEl = $('toast');
+  var toastTimer = 0;
+
+  function toast(msg) {
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toastEl.classList.remove('show'); }, 2400);
+  }
+
+  function renderConfig() {
+    var pair = CONFIG.groom + ' & ' + CONFIG.bride;
+    $('coverNames').textContent = pair;
+    $('coverDate').textContent = CONFIG.dateText;
+    $('coverDateCN').textContent = CONFIG.dateCN || CONFIG.dateText;
+    $('textDate').textContent = CONFIG.dateCN || CONFIG.dateText;
+    $('textNames').textContent = CONFIG.groom + ' · ' + CONFIG.bride;
+    $('closingNames').textContent = pair;
+    $('factDate').textContent = CONFIG.dateText;
+    $('factTime').textContent = CONFIG.timeText;
+    $('factPlace').textContent = CONFIG.venue;
+    $('factAddress').textContent = CONFIG.address;
+
+    var list = $('timeline');
+    list.innerHTML = '';
+    (CONFIG.timeline || []).forEach(function (item) {
+      var li = document.createElement('li');
+      li.innerHTML = '<span class="t"></span><span class="d"><b></b></span>';
+      li.querySelector('.t').textContent = item.time;
+      li.querySelector('b').textContent = item.title;
+      li.querySelector('.d').appendChild(document.createTextNode(item.desc || ''));
+      list.appendChild(li);
+    });
+  }
+
+  $('mapButton').addEventListener('click', function () {
+    window.open(
+      'https://uri.amap.com/marker?position=' + CONFIG.lng + ',' + CONFIG.lat +
+      '&name=' + encodeURIComponent(CONFIG.venue) +
+      '&src=wedding-invite&coordinate=gaode&callnative=1',
+      '_blank', 'noopener'
+    );
+  });
+
+  $('copyButton').addEventListener('click', function () {
+    var text = CONFIG.venue + ' ' + CONFIG.address;
+    function fallback() {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); toast('地址已复制'); }
+      catch (e) { toast('请长按选择复制'); }
+      document.body.removeChild(ta);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () { toast('地址已复制'); }, fallback);
+    } else fallback();
+  });
+
+  $('calendarButton').addEventListener('click', function () {
+    var dt = CONFIG.dateISO || '20261018';
+    var ics = [
+      'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//wedding-invite//CN',
+      'BEGIN:VEVENT',
+      'DTSTART;VALUE=DATE:' + dt,
+      'DTEND;VALUE=DATE:' + dt,
+      'SUMMARY:' + CONFIG.groom + ' & ' + CONFIG.bride + ' 的婚礼',
+      'LOCATION:' + CONFIG.venue + ' ' + CONFIG.address,
+      'DESCRIPTION:' + CONFIG.timeText,
+      'END:VEVENT', 'END:VCALENDAR'
+    ].join('\r\n');
+    try {
+      var blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'wedding-' + dt + '.ics';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(function () { URL.revokeObjectURL(a.href); }, 1500);
+      toast('日历文件已生成');
+    } catch (e) {
+      toast('日期：' + CONFIG.dateText + ' ' + CONFIG.timeText);
+    }
+  });
+
+  function setupReveal() {
+    var nodes = [].slice.call(document.querySelectorAll('.reveal'));
+    if (!('IntersectionObserver' in window)) {
+      nodes.forEach(function (n) { n.classList.add('in'); });
+      return;
+    }
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (en.isIntersecting) {
+          en.target.classList.add('in');
+          io.unobserve(en.target);
+        }
+      });
+    }, { threshold: 0.1, root: $('scroll') });
+    nodes.forEach(function (n) { io.observe(n); });
+  }
+
+  function setupPhotoLoop() {
+    var track = $('photoTrack');
+    if (!track) return;
+    var group = track.querySelector('.strip-group');
+    if (!group || !group.children.length) return;
+    var clone = group.cloneNode(true);
+    clone.setAttribute('aria-hidden', 'true');
+    track.appendChild(clone);
+
+    function pause() { track.classList.add('paused'); }
+    function resumeLater() {
+      setTimeout(function () { track.classList.remove('paused'); }, 1200);
+    }
+    var strip = $('photoStrip');
+    ['pointerdown', 'touchstart', 'mousedown'].forEach(function (ev) {
+      strip.addEventListener(ev, pause, { passive: true });
+    });
+    ['pointerup', 'pointercancel', 'touchend', 'touchcancel', 'mouseup', 'mouseleave'].forEach(function (ev) {
+      strip.addEventListener(ev, resumeLater, { passive: true });
+    });
+  }
+
+  var Music = (function () {
+    var SOURCES = [
+      'assets/river-flows-in-you.mp3',
+      'assets/a-thousand-years.mp3',
+      'assets/bgm.mp3'
+    ];
+    var audio = null, started = false, wantPlay = true, muted = false, srcTried = 0;
+
+    function ensureAudio() {
+      if (audio) return audio;
+      audio = new Audio();
+      audio.loop = true;
+      audio.preload = 'auto';
+      audio.volume = 0.5;
+      audio.setAttribute('playsinline', 'true');
+      audio.setAttribute('webkit-playsinline', 'true');
+      return audio;
+    }
+    function syncBtn() {
+      var btn = $('music');
+      btn.classList.toggle('mute', muted || !wantPlay);
+      btn.setAttribute('aria-pressed', wantPlay && !muted ? 'true' : 'false');
+    }
+    function play() {
+      if (!wantPlay) return;
+      var a = ensureAudio();
+      if (!a.src && srcTried < SOURCES.length) a.src = SOURCES[srcTried++];
+      if (!a.src) return;
+      a.play().then(function () { started = true; muted = false; syncBtn(); })
+        .catch(function (err) {
+          var name = err && err.name;
+          if (name === 'NotAllowedError' || name === 'AbortError') { muted = true; syncBtn(); return; }
+          if (srcTried < SOURCES.length) { a.src = SOURCES[srcTried++]; play(); }
+          else { muted = true; syncBtn(); }
+        });
+    }
+    function unlock() {
+      if (!wantPlay) return;
+      if (started && audio && !audio.paused) return;
+      play();
+    }
+    document.addEventListener('WeixinJSBridgeReady', unlock, false);
+    ['touchstart', 'touchend', 'mousedown', 'click', 'keydown'].forEach(function (ev) {
+      document.addEventListener(ev, unlock, { passive: true, once: true });
+    });
+    document.addEventListener('touchstart', unlock, { passive: true });
+    document.addEventListener('click', unlock, true);
+    return {
+      toggle: function () {
+        if (!audio || !started) {
+          wantPlay = true; muted = false;
+          if (srcTried >= SOURCES.length) srcTried = 0;
+          play(); syncBtn(); return;
+        }
+        if (audio.paused) {
+          wantPlay = true;
+          audio.play().then(function () { muted = false; syncBtn(); }, function () {});
+        } else {
+          wantPlay = false; audio.pause(); muted = true; syncBtn();
+        }
+      },
+      kick: unlock,
+      sync: syncBtn
+    };
+  })();
+
+  $('music').addEventListener('click', function (e) {
+    e.preventDefault(); e.stopPropagation();
+    Music.toggle();
+  }, true);
+
+  function setupBoot() {
+    var boot = $('boot');
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var started = false;
+
+    document.body.classList.add('booting');
+    var bootImg = $('bootImg');
+    bootImg.src = 'assets/wall.webp?v=1';
+    function usePrintImage() {
+      bootImg.src = 'assets/printer-plain.png';
+    }
+
+    function enterInvite() {
+      boot.classList.add('hide');
+      document.body.classList.remove('booting');
+      var sc = $('scroll');
+      if (sc) sc.scrollTop = 0;
+    }
+    function finish() {
+      if (started) return;
+      started = true;
+      boot.classList.add('ready');
+    }
+    function startPrint() {
+      if (boot.classList.contains('printing') || started) return;
+      usePrintImage();
+      boot.classList.add('printing');
+      Music.kick();
+      if (reduce) { finish(); return; }
+      setTimeout(finish, 4600);
+    }
+
+    boot.addEventListener('click', function (e) {
+      if (e.target === $('skipBtn')) return;
+      if (boot.classList.contains('ready')) { enterInvite(); return; }
+      startPrint();
+    });
+    var touchY = 0;
+    boot.addEventListener('touchstart', function (e) {
+      touchY = e.touches[0].clientY;
+    }, { passive: true });
+    boot.addEventListener('touchend', function (e) {
+      if (!boot.classList.contains('ready')) return;
+      if (touchY - e.changedTouches[0].clientY > 36) enterInvite();
+    }, { passive: true });
+    $('skipBtn').addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!boot.classList.contains('ready')) usePrintImage();
+      enterInvite();
+    });
+  }
+
+  renderConfig();
+  setupReveal();
+  setupPhotoLoop();
+  setupBoot();
+  Music.kick();
+  Music.sync();
+})();
+</script>
+</body>
+</html>

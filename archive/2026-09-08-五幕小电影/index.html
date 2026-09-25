@@ -1,0 +1,1329 @@
+<!doctype html>
+<!-- 我们的五幕小电影 v3 —— 全部文字禁止换行（white-space:nowrap），排不下由脚本自动缩小字号 -->
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="format-detection" content="telephone=no">
+<meta name="theme-color" content="#070c1f">
+<meta name="description" content="五幕关于我们的小片段，一份可以滑动、点击、放映的婚礼邀请。">
+<title>我们的五幕小电影 · 婚礼邀请</title>
+<style>
+  :root{
+    --ink:#070c1f;
+    --cream:#fff3d3;
+    --gold:#ffd995;
+    --peach:#ffae83;
+    --accent:#ffd995;
+    --mx:0;
+    --my:0;
+    --ease:cubic-bezier(.2,.8,.2,1);
+    --sans:"PingFang SC","HarmonyOS Sans SC","Noto Sans SC","Microsoft YaHei",system-ui,-apple-system,sans-serif;
+    --serif:"Songti SC","Noto Serif SC","Source Han Serif SC","STSong",Georgia,serif;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0;height:100%;background:#05070f;overflow:hidden;overscroll-behavior:none;-webkit-text-size-adjust:100%}
+  body{color:var(--cream);font-family:var(--sans);user-select:none;-webkit-user-select:none}
+  button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+  button:focus-visible{outline:2px solid var(--gold);outline-offset:4px}
+
+  /* ---------- 舞台骨架 ---------- */
+  .app{position:fixed;inset:0;display:flex;justify-content:center;align-items:stretch;background:radial-gradient(circle at 50% 40%,#0d1730,#05070f 70%)}
+  .shell{position:relative;width:100%;max-width:460px;height:100%;overflow:hidden;background:#0a1330;isolation:isolate;touch-action:none;box-shadow:0 0 0 1px rgba(255,255,255,.05),0 24px 90px rgba(0,0,0,.5)}
+
+  /* ---------- 五幕 ---------- */
+  .chapters{position:absolute;inset:0;z-index:1}
+  .chapter{position:absolute;inset:0;overflow:hidden;opacity:0;pointer-events:none;transition:opacity .8s var(--ease)}
+  .chapter.active{opacity:1;pointer-events:auto}
+  .stage{position:absolute;inset:0;overflow:hidden;transform:scale(1.045);transform-origin:50% 50%;transition:transform 1.5s var(--ease);background:#0d1b3a}
+  .chapter.active .stage{transform:scale(1)}
+  .art-layer{position:absolute;left:0;top:0;will-change:transform}
+  .art-layer img.art{position:absolute;inset:0;width:100%;height:100%;display:block;object-fit:fill;user-select:none;-webkit-user-drag:none}
+
+  /* ---------- 调色 / 蒙版 ---------- */
+  .wash{
+    position:absolute;inset:-12%;z-index:2;pointer-events:none;
+    background:
+      radial-gradient(ellipse at 74% 14%,var(--accent),transparent 34%),
+      radial-gradient(ellipse at 6% 78%,rgba(255,132,112,.2),transparent 36%),
+      linear-gradient(112deg,rgba(9,26,66,.24),transparent 48%,rgba(255,198,140,.16));
+    mix-blend-mode:screen;opacity:.5;
+    transform:translate3d(calc(var(--mx) * 12px),calc(var(--my) * 9px),0);
+    transition:transform .7s var(--ease);
+  }
+  .shade{position:absolute;inset:0;z-index:3;pointer-events:none;background:linear-gradient(180deg,rgba(5,12,34,.5),rgba(5,12,34,.06) 26%,rgba(5,12,34,.12) 52%,rgba(5,12,34,.68))}
+  .chapter[data-tone="warm"] .shade{background:linear-gradient(180deg,rgba(48,24,44,.36),rgba(40,20,40,.04) 26%,rgba(30,14,34,.16) 52%,rgba(24,10,28,.6))}
+  .chapter[data-tone="dark"] .shade{background:linear-gradient(180deg,rgba(4,8,32,.52),rgba(4,8,32,.08) 26%,rgba(3,6,26,.2) 52%,rgba(2,4,20,.74))}
+  .chapter[data-tone="night"] .shade{background:linear-gradient(180deg,rgba(3,10,44,.56),rgba(4,12,48,.08) 24%,rgba(3,9,40,.2) 52%,rgba(2,6,30,.76))}
+
+  /* ---------- 字幕 ---------- */
+  .copy{
+    position:absolute;z-index:6;left:24px;right:34px;top:clamp(88px,15vh,146px);max-width:400px;
+    transform:translate3d(calc(var(--mx) * 7px),calc(var(--my) * 6px),0);
+    transition:transform .7s var(--ease);
+    text-shadow:0 6px 26px rgba(4,14,40,.55),0 1px 3px rgba(4,14,40,.4);
+  }
+  .copy .scene{display:flex;align-items:center;gap:9px;margin:0 0 16px;font-size:10px;letter-spacing:.26em;color:rgba(255,246,222,.9);white-space:nowrap}
+  .copy .scene::after{content:"";flex:1;height:1px;max-width:66px;background:linear-gradient(90deg,rgba(255,240,205,.75),transparent)}
+  .copy h1,.copy h2{margin:0;font-family:var(--serif);font-weight:600;font-size:clamp(24px,8.4vw,52px);line-height:1.16;letter-spacing:-.01em;color:#fff5da}
+  .copy h1 em,.copy h2 em{font-style:normal;color:var(--accent);text-shadow:0 0 30px rgba(255,206,140,.55),0 2px 12px rgba(3,10,30,.85),0 0 3px rgba(3,10,30,.6)}
+  .copy::before{
+    content:"";position:absolute;z-index:-1;inset:-18px -26px -20px -26px;border-radius:26px;
+    background:radial-gradient(ellipse at 26% 44%,rgba(4,12,34,.62),rgba(4,12,34,.3) 52%,rgba(4,12,34,0) 78%);
+  }
+  .copy .sub{margin:16px 0 0;font-size:10px;letter-spacing:.2em;color:rgba(255,244,219,.72)}
+  .copy .line{display:block;overflow:hidden}
+  .copy .line > span{display:block;transform:translateY(112%);transition:transform 1s var(--ease)}
+  .chapter.active .copy .line > span{transform:translateY(0)}
+  .chapter.active .copy .line:nth-child(2) > span{transition-delay:.1s}
+  .copy .scene,.copy .sub{opacity:0;transition:opacity .8s var(--ease) .25s}
+  .chapter.active .copy .scene,.chapter.active .copy .sub{opacity:1}
+
+  .chapter-num{position:absolute;z-index:6;right:20px;top:44%;font-size:10px;letter-spacing:.2em;color:rgba(255,244,214,.72);writing-mode:vertical-rl;transform:translate3d(calc(var(--mx) * 26px),calc(var(--my) * 20px),0);transition:transform .6s var(--ease)}
+
+  /* ---------- 环境层 ---------- */
+  #fx{position:absolute;inset:0;z-index:5;width:100%;height:100%;pointer-events:none}
+  .clouds{position:absolute;inset:-18%;z-index:4;pointer-events:none;opacity:.5}
+  .clouds b{position:absolute;display:block;border-radius:50%;filter:blur(28px);background:radial-gradient(circle,rgba(255,255,255,.42),rgba(255,255,255,0) 68%);animation:drift 26s ease-in-out infinite alternate}
+  .clouds b:nth-child(1){left:4%;top:12%;width:52%;height:26%}
+  .clouds b:nth-child(2){right:2%;top:30%;width:46%;height:22%;animation-duration:34s;animation-delay:-8s}
+  .clouds b:nth-child(3){left:22%;bottom:14%;width:60%;height:24%;animation-duration:30s;animation-delay:-14s;opacity:.7}
+  @keyframes drift{0%{transform:translate3d(-4%,0,0) scale(1)}100%{transform:translate3d(5%,3%,0) scale(1.1)}}
+  .grain{
+    position:absolute;inset:0;z-index:8;pointer-events:none;opacity:.16;mix-blend-mode:soft-light;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    animation:grainShift .9s steps(3) infinite;
+  }
+  @keyframes grainShift{0%{transform:translate3d(0,0,0)}33%{transform:translate3d(-2%,1%,0)}66%{transform:translate3d(1%,-2%,0)}100%{transform:translate3d(0,0,0)}}
+  .scratch{
+    position:absolute;inset:0;z-index:8;pointer-events:none;opacity:0;
+    background:linear-gradient(90deg,transparent 12%,rgba(255,248,225,.5) 12.1%,transparent 12.4%,transparent 63%,rgba(255,248,225,.42) 63.1%,transparent 63.4%);
+    animation:scratchFlicker 5.5s steps(1) infinite;
+  }
+  @keyframes scratchFlicker{0%,92%,100%{opacity:0}93%{opacity:.5}94%{opacity:0}96%{opacity:.36}97%{opacity:0}}
+  .vignette{position:absolute;inset:0;z-index:9;pointer-events:none;background:radial-gradient(ellipse at 50% 48%,transparent 52%,rgba(2,6,20,.5) 100%)}
+  .bars{position:absolute;inset:0;z-index:10;pointer-events:none}
+  .bars i{position:absolute;left:0;right:0;height:0;background:#02040d;display:block}
+
+  /* ---------- 全部文字禁止换行（排不下由 JS 自动缩字号） ---------- */
+  .nl{display:block}
+  .copy .scene,.copy .line > span,.copy .sub,
+  .opening-card .eyebrow,.opening-card h1,.opening-card p,.opening-foot,.start,
+  .hud-top,.hud-top .brand,.hud-top > span,.swipe-note,
+  .card .label,.card h2,.card .names,.card .lead,.fact small,.fact strong,
+  .timeline .t,.timeline .d,.timeline .d b,.action,.toast{
+    white-space:nowrap;
+  }
+
+  /* ---------- HUD ---------- */
+  .hud{position:absolute;z-index:14;transition:opacity .45s ease}
+  .hud-top{top:max(20px,env(safe-area-inset-top));left:22px;right:22px;display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,246,222,.82);text-shadow:0 2px 16px rgba(4,14,40,.5)}
+  .hud-top .brand{display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
+  .hud-top > span:last-child{white-space:nowrap}
+  .hud-top .brand b{width:6px;height:6px;border-radius:50%;background:var(--peach);box-shadow:0 0 0 4px rgba(255,174,131,.18)}
+  .hud-top .brand small{opacity:.68;letter-spacing:.12em}
+  .hud-bottom{left:22px;right:22px;bottom:max(22px,env(safe-area-inset-bottom));display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .swipe-note{display:inline-flex;align-items:center;gap:9px;font-size:11px;letter-spacing:.06em;color:rgba(255,246,224,.8);text-shadow:0 2px 14px rgba(4,14,40,.5);white-space:nowrap}
+  .swipe-note .pill{position:relative;width:26px;height:38px;border:1px solid rgba(255,247,221,.55);border-radius:14px}
+  .swipe-note .pill::after{content:"";position:absolute;left:50%;top:6px;width:4px;height:8px;border-radius:3px;background:var(--cream);transform:translateX(-50%);animation:wheel 1.9s ease-in-out infinite}
+  @keyframes wheel{0%,100%{transform:translate(-50%,0);opacity:.4}46%{transform:translate(-50%,13px);opacity:1}}
+  .dots{display:flex;align-items:center;gap:7px}
+  .dots button{width:7px;height:7px;border-radius:50%;background:rgba(255,244,213,.42);transition:width .3s var(--ease),background .3s ease}
+  .dots button.active{width:22px;border-radius:9px;background:var(--accent)}
+  .next{display:grid;place-items:center;width:46px;height:46px;border-radius:50%;border:1px solid rgba(255,245,216,.55);background:rgba(10,26,60,.28);color:var(--cream);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);transition:transform .25s var(--ease),background .25s ease}
+  .next:active{transform:scale(.94)}
+  .next span{font-size:18px;line-height:1;transform:translateY(-1px)}
+  .app.invite-open .hud{opacity:0;pointer-events:none}
+
+  /* ---------- 提示气泡 ---------- */
+  .toast{
+    position:absolute;z-index:40;left:50%;bottom:max(92px,calc(env(safe-area-inset-bottom) + 74px));max-width:calc(100% - 48px);
+    padding:11px 16px;border-radius:999px;border:1px solid rgba(255,243,211,.42);
+    background:rgba(9,24,58,.62);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+    font-size:12px;letter-spacing:.04em;text-align:center;color:#fff5d9;
+    opacity:0;pointer-events:none;transform:translate(-50%,14px);
+    transition:opacity .35s ease,transform .35s var(--ease);
+  }
+  .toast.show{opacity:1;transform:translate(-50%,0)}
+
+  /* ---------- 转场容器 ---------- */
+  .fxhost{position:absolute;inset:0;z-index:18;pointer-events:none;overflow:hidden}
+
+  /* 1. 竹叶 + 光斑散开 */
+  .fx-veil{position:absolute;inset:0;opacity:0}
+  .fx-veil.leaves{background:radial-gradient(circle at 50% 60%,rgba(180,235,190,.5),rgba(30,90,60,.2) 60%,rgba(6,20,40,.72));animation:veilFade .95s ease-out forwards}
+  .fx-veil.flash{background:radial-gradient(circle at 50% 34%,#fffaf0,rgba(255,236,196,.8) 40%,rgba(120,120,255,.15) 78%);animation:veilFlash .62s ease-out forwards}
+  .fx-veil.glow{background:radial-gradient(circle at 50% 50%,rgba(255,222,150,.75),rgba(255,150,90,.28) 46%,rgba(10,20,60,.7));animation:veilFade 1s ease-out forwards}
+  @keyframes veilFade{0%{opacity:0}22%{opacity:.95}100%{opacity:0}}
+  @keyframes veilFlash{0%{opacity:0}12%{opacity:1}26%{opacity:.25}38%{opacity:.9}100%{opacity:0}}
+
+  /* 2. 电影票撕开 */
+  .fx-ticket{position:absolute;inset:0}
+  .fx-ticket .half{position:absolute;left:-4%;right:-4%;height:58%;background:linear-gradient(105deg,#ffe6ad,#f3a07f 56%,#3a4f9b);box-shadow:0 0 40px rgba(0,0,0,.35) inset}
+  .fx-ticket .half::after{content:"ADMIT ONE · 我们的电影";position:absolute;left:0;right:0;font-size:10px;letter-spacing:.3em;color:rgba(30,40,90,.62);text-align:center}
+  .fx-ticket .top{top:0;clip-path:polygon(0 0,100% 0,100% 100%,92% 88%,84% 100%,76% 86%,68% 100%,60% 88%,52% 100%,44% 86%,36% 100%,28% 88%,20% 100%,12% 86%,4% 100%,0 88%);animation:ticketTop .92s var(--ease) forwards}
+  .fx-ticket .top::after{bottom:14%}
+  .fx-ticket .bottom{bottom:0;clip-path:polygon(0 100%,100% 100%,100% 0,92% 14%,84% 0,76% 16%,68% 0,60% 14%,52% 0,44% 16%,36% 0,28% 14%,20% 0,12% 16%,4% 0,0 14%);animation:ticketBottom .92s var(--ease) forwards}
+  .fx-ticket .bottom::after{top:14%}
+  .fx-ticket .tear{position:absolute;left:0;right:0;top:calc(50% - 1px);height:2px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.95),transparent);animation:tearLine .5s ease-out forwards}
+  @keyframes ticketTop{0%{transform:translateY(0)}24%{transform:translateY(0)}100%{transform:translateY(-104%) rotate(-3deg)}}
+  @keyframes ticketBottom{0%{transform:translateY(0)}24%{transform:translateY(0)}100%{transform:translateY(104%) rotate(3deg)}}
+  @keyframes tearLine{0%{opacity:0;transform:scaleX(.2)}14%{opacity:1;transform:scaleX(1)}58%{opacity:1;transform:scaleX(1)}100%{opacity:0;transform:scaleX(1.06)}}
+
+  /* 3. 窗光渐亮 */
+  .fx-window{position:absolute;inset:0;opacity:0;animation:windowUp 1.05s ease-out forwards}
+  .fx-window .panes{
+    position:absolute;left:6%;top:14%;width:88%;height:62%;border-radius:14px;
+    background:
+      repeating-linear-gradient(90deg,transparent 0 32%,rgba(74,46,68,.62) 32% 33.6%,transparent 33.6% 65%,rgba(74,46,68,.62) 65% 66.6%,transparent 66.6% 100%),
+      repeating-linear-gradient(180deg,transparent 0 47%,rgba(74,46,68,.55) 47% 49%,transparent 49% 100%),
+      linear-gradient(180deg,rgba(255,247,214,.95),rgba(255,186,126,.88) 62%,rgba(226,140,120,.92));
+    box-shadow:0 0 120px 40px rgba(255,206,150,.55),0 0 0 3px rgba(96,60,80,.55);
+  }
+  .fx-window .bloom{position:absolute;inset:0;background:radial-gradient(circle at 50% 44%,rgba(255,250,230,.85),rgba(255,200,150,.35) 46%,transparent 76%)}
+  @keyframes windowUp{0%{opacity:0;filter:brightness(.25)}14%{opacity:.85;filter:brightness(.62)}34%{opacity:1;filter:brightness(1.25)}70%{opacity:1;filter:brightness(1.45)}100%{opacity:0;filter:brightness(1.9)}}
+
+  /* 4. 银幕闪白 */
+  .fx-flash{position:absolute;inset:0;background:#fff8e6;opacity:0;animation:screenFlash .78s ease-out forwards}
+  @keyframes screenFlash{0%{opacity:0}8%{opacity:1}30%{opacity:1}46%{opacity:.45}60%{opacity:.82}100%{opacity:0}}
+
+  /* 5. 灯笼光晕扩散 */
+  .fx-halo{
+    position:absolute;width:34%;height:0;padding-bottom:34%;transform:translate(-50%,-50%) scale(.2);
+    border-radius:50%;opacity:0;
+    background:radial-gradient(circle,rgba(255,238,180,.95),rgba(255,150,80,.42) 44%,rgba(255,110,60,0) 72%);
+    mix-blend-mode:screen;animation:haloSpread 1.05s ease-out forwards;
+  }
+  @keyframes haloSpread{0%{opacity:0;transform:translate(-50%,-50%) scale(.2)}28%{opacity:.95}100%{opacity:0;transform:translate(-50%,-50%) scale(2.6)}}
+
+  /* ---------- 开场笔刷擦拭 ---------- */
+  .opening{
+    position:absolute;inset:0;z-index:30;display:grid;place-items:center;padding:32px 24px;
+    background:linear-gradient(155deg,#0d234c,#304385 52%,#db7d6f);
+    transition:opacity .5s ease,visibility 0s linear .5s;
+  }
+  .opening::before{
+    content:"";position:absolute;inset:-20%;
+    background:repeating-linear-gradient(-12deg,transparent 0 34px,rgba(255,227,177,.1) 35px 42px,transparent 43px 70px);
+    transform:rotate(-5deg) translate3d(calc(var(--mx) * 10px),calc(var(--my) * 8px),0);opacity:.55;
+  }
+  .app.started .opening{opacity:0;visibility:hidden;pointer-events:none}
+  .opening-card{position:relative;width:min(100%,400px);text-align:center;transition:opacity .45s ease,transform .6s var(--ease)}
+  .app.wiping .opening-card{opacity:0;transform:translateY(-14px)}
+  .opening-card .eyebrow{margin:0 0 20px;font-size:10px;letter-spacing:.28em;color:rgba(255,245,215,.8)}
+  .opening-card h1{margin:0;font-family:var(--serif);font-weight:600;font-size:clamp(36px,11vw,62px);line-height:1.12;color:#fff4d2;letter-spacing:.01em;text-shadow:0 8px 30px rgba(4,16,44,.4)}
+  .opening-card h1 em{font-style:normal;color:#ffdc9d}
+  .opening-card p{margin:20px auto 0;max-width:270px;font-size:13px;line-height:1.85;color:rgba(255,248,224,.85)}
+  .start{position:relative;margin-top:30px;min-width:170px;min-height:48px;padding:0 24px;border-radius:999px;color:#20365f;background:#ffe3a6;box-shadow:0 14px 36px rgba(6,18,48,.28);transition:transform .25s var(--ease),background .25s ease}
+  .start:active{transform:scale(.96)}
+  .opening-foot{display:block;margin-top:16px;font-size:10px;letter-spacing:.14em;color:rgba(255,247,220,.6)}
+  .wipe-canvas{position:absolute;inset:0;z-index:34;pointer-events:none}
+
+  /* ---------- 婚礼信息页 ---------- */
+  .invite{
+    position:absolute;inset:0;z-index:26;display:flex;align-items:flex-end;
+    padding:20px 20px max(22px,env(safe-area-inset-bottom));
+    overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;
+    opacity:0;visibility:hidden;pointer-events:none;clip-path:circle(0% at 50% 78%);
+    background:linear-gradient(162deg,rgba(20,44,96,.92),rgba(38,72,128,.95) 46%,rgba(206,116,102,.95));
+    transition:opacity .4s ease,clip-path 1s var(--ease),visibility 0s linear 1s;
+  }
+  .invite::before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 70% 46%,rgba(255,234,178,.6),transparent 26%),linear-gradient(180deg,rgba(14,28,70,.1),rgba(10,22,54,.5));mix-blend-mode:screen}
+  .app.invite-open .invite{opacity:1;visibility:visible;pointer-events:auto;clip-path:circle(150% at 50% 78%);transition-delay:0s}
+  .card{position:relative;width:100%;max-width:440px;margin:auto auto 0;padding:22px 18px 18px;border-radius:24px;border:1px solid rgba(255,244,214,.32);background:rgba(8,24,58,.62);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:0 26px 80px rgba(3,12,36,.4)}
+  .card .label{margin:0 0 12px;font-size:10px;letter-spacing:.26em;color:rgba(255,245,214,.7)}
+  .card h2{margin:0;font-family:var(--serif);font-weight:600;font-size:clamp(26px,7.6vw,38px);line-height:1.2;color:#fff4d0}
+  .card .names{margin:12px 0 0;font-size:13px;letter-spacing:.22em;color:rgba(255,246,222,.86)}
+  .card .lead{margin:12px 0 16px;font-size:12.5px;line-height:1.75;color:rgba(255,247,224,.82)}
+  .facts{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:14px}
+  .fact{padding:11px 12px;border-radius:14px;background:rgba(255,247,218,.1)}
+  .fact small{display:block;margin-bottom:4px;font-size:9.5px;letter-spacing:.14em;color:rgba(255,247,224,.6)}
+  .fact strong{font-size:13.5px;font-weight:550;line-height:1.4}
+  .fact.wide{grid-column:1/-1}
+  .timeline{margin:4px 0 16px;padding:0 0 0 4px;list-style:none;position:relative}
+  .timeline::before{content:"";position:absolute;left:9px;top:8px;bottom:8px;width:1px;background:linear-gradient(180deg,rgba(255,236,190,.65),rgba(255,236,190,.12))}
+  .timeline li{position:relative;display:flex;gap:12px;padding:7px 0 7px 24px;font-size:12px}
+  .timeline li::before{content:"";position:absolute;left:5px;top:13px;width:9px;height:9px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 4px rgba(255,214,150,.16)}
+  .timeline .t{flex:0 0 46px;color:rgba(255,240,205,.92);letter-spacing:.06em}
+  .timeline .d{color:rgba(255,247,224,.72)}
+  .timeline .d b{display:block;color:#fff6df;font-weight:550}
+  .actions{display:flex;gap:8px;flex-wrap:wrap}
+  .action{flex:1 1 0;min-width:104px;min-height:44px;border-radius:999px;border:1px solid rgba(255,245,218,.38);background:rgba(255,247,218,.12);font-size:13px;transition:transform .2s var(--ease),background .2s ease}
+  .action:active{transform:scale(.97)}
+  .action.primary{color:#20365f;background:#ffe1a1;border-color:transparent}
+  .close{position:absolute;top:14px;right:14px;width:36px;height:36px;border-radius:50%;border:1px solid rgba(255,246,220,.36);background:rgba(9,26,60,.3);font-size:16px}
+
+  /* ---------- 胶片收束 ---------- */
+  .fx-film{position:absolute;inset:0;z-index:22;pointer-events:none}
+  .fx-film .bar{position:absolute;left:0;right:0;height:50%;background:#02040d;animation:filmBar .95s var(--ease) forwards}
+  .fx-film .bar.top{top:0;transform-origin:top}
+  .fx-film .bar.bottom{bottom:0;transform-origin:bottom}
+  @keyframes filmBar{0%{transform:scaleY(0)}38%{transform:scaleY(1)}100%{transform:scaleY(1)}}
+  .fx-film .strip{
+    position:absolute;left:-10%;right:-10%;top:50%;height:46px;transform:translateY(-50%) scaleY(.2);
+    background:#0a0c14;
+    background-image:repeating-linear-gradient(90deg,transparent 0 14px,rgba(255,242,208,.92) 14px 26px,transparent 26px 44px);
+    background-size:100% 12px;background-position:0 4px;background-repeat:repeat-x;
+    box-shadow:0 0 0 2px rgba(255,240,200,.55),0 0 26px rgba(255,214,150,.35);
+    animation:filmStrip .95s var(--ease) forwards;
+  }
+  @keyframes filmStrip{0%{transform:translateY(-50%) scaleY(.2);opacity:0}38%{opacity:1;transform:translateY(-50%) scaleY(1)}70%{opacity:1;transform:translateY(-50%) scaleY(1)}100%{opacity:0;transform:translateY(-50%) scaleY(.06)}}
+  .fx-film .gate{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%,rgba(255,248,230,.62),rgba(255,240,200,.22) 46%,transparent 76%);opacity:0;animation:gateFlash .95s ease-out forwards}
+  @keyframes gateFlash{0%,62%{opacity:0}74%{opacity:.9}100%{opacity:0}}
+
+  /* 窄屏：保证每行文字都排得下，不出现「第二行只剩一两个字」 */
+  @media (max-width:400px){
+    .hud-top{font-size:9px;letter-spacing:.13em}
+  }
+  @media (max-width:348px){
+    #hudLabel{display:none}
+    .copy h1,.copy h2{font-size:clamp(21px,7.6vw,28px)}
+    .swipe-note{font-size:10px}
+    .card h2{font-size:clamp(23px,7.2vw,30px)}
+  }
+
+  @media (min-width:700px){
+    .app{align-items:center}
+    .shell{max-width:420px;border-radius:26px;height:min(100%,860px);margin:auto}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
+  }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <div class="shell" id="shell">
+
+    <!-- ================= 五幕 ================= -->
+    <div class="chapters" id="chapters">
+
+      <!-- 第一幕 · 动物园看熊猫 -->
+      <article class="chapter active" data-index="0" data-fx="leaves" data-focus="72,50" data-accent="#ffd995" data-tone="cool" aria-label="第一幕：动物园看熊猫">
+        <div class="stage">
+          <div class="art-layer">
+            <picture>
+              <source srcset="assets/panda-zoo.webp" type="image/webp">
+              <img class="art" src="assets/panda-zoo.png" alt="情侣在动物园看熊猫的手绘插画" draggable="false" decoding="async">
+            </picture>
+          </div>
+        </div>
+        <div class="wash"></div>
+        <div class="shade"></div>
+        <div class="copy">
+          <p class="scene">SCENE 01 · 开场</p>
+          <h1><span class="line"><span>我们先学会了，</span></span><span class="line"><span><em>一起抬头看。</em></span></span></h1>
+          <p class="sub">THE DAY WE LOOKED UP TOGETHER</p>
+        </div>
+        <div class="chapter-num">01 / 05</div>
+      </article>
+
+      <!-- 第二幕 · 环球影城 -->
+      <article class="chapter" data-index="1" data-fx="ticket" data-focus="62,52" data-accent="#ffe0b0" data-tone="cool" aria-label="第二幕：一起逛电影主题乐园">
+        <div class="stage">
+          <div class="art-layer">
+            <picture>
+              <source srcset="assets/universal-studios.webp" type="image/webp">
+              <img class="art" src="assets/universal-studios.png" alt="情侣牵手走过电影主题乐园的手绘插画" draggable="false" decoding="async">
+            </picture>
+          </div>
+        </div>
+        <div class="wash"></div>
+        <div class="shade"></div>
+        <div class="copy">
+          <p class="scene">SCENE 02 · 出发</p>
+          <h2><span class="line"><span>想去的地方，</span></span><span class="line"><span><em>都写在同一张票上。</em></span></span></h2>
+          <p class="sub">ONE TICKET, TWO OF US</p>
+        </div>
+        <div class="chapter-num">02 / 05</div>
+      </article>
+
+      <!-- 第三幕 · 客厅吃西瓜 -->
+      <article class="chapter" data-index="2" data-fx="window" data-focus="52,54" data-accent="#ffd398" data-tone="warm" aria-label="第三幕：在家一起吃西瓜">
+        <div class="stage">
+          <div class="art-layer">
+            <picture>
+              <source srcset="assets/livingroom-watermelon.webp" type="image/webp">
+              <img class="art" src="assets/livingroom-watermelon.png" alt="情侣在客厅一起吃西瓜的手绘插画" draggable="false" decoding="async">
+            </picture>
+          </div>
+        </div>
+        <div class="wash"></div>
+        <div class="shade"></div>
+        <div class="copy">
+          <p class="scene">SCENE 03 · 日常</p>
+          <h2><span class="line"><span>最好的镜头，</span></span><span class="line"><span><em>总在家里。</em></span></span></h2>
+          <p class="sub">HOME IS OUR FAVOURITE SET</p>
+        </div>
+        <div class="chapter-num">03 / 05</div>
+      </article>
+
+      <!-- 第四幕 · 电影院 -->
+      <article class="chapter" data-index="3" data-fx="flash" data-focus="50,48" data-accent="#c9c9ff" data-tone="dark" aria-label="第四幕：一起去电影院">
+        <div class="stage">
+          <div class="art-layer">
+            <picture>
+              <source srcset="assets/cinema.webp" type="image/webp">
+              <img class="art" src="assets/cinema.png" alt="情侣在电影院并肩看电影的手绘插画" draggable="false" decoding="async">
+            </picture>
+          </div>
+        </div>
+        <div class="wash"></div>
+        <div class="shade"></div>
+        <div class="copy">
+          <p class="scene">SCENE 04 · 并肩</p>
+          <h2><span class="line"><span>光落在银幕上，</span></span><span class="line"><span><em>也落在我们身上。</em></span></span></h2>
+          <p class="sub">SITTING NEXT TO YOU</p>
+        </div>
+        <div class="chapter-num">04 / 05</div>
+      </article>
+
+      <!-- 第五幕 · 夜市 -->
+      <article class="chapter" data-index="4" data-fx="lantern" data-focus="64,54" data-accent="#ffd382" data-tone="night" aria-label="第五幕：一起逛夜市">
+        <div class="stage">
+          <div class="art-layer">
+            <picture>
+              <source srcset="assets/night-market.webp" type="image/webp">
+              <img class="art" src="assets/night-market.png" alt="情侣牵手逛夜市的手绘插画" draggable="false" decoding="async">
+            </picture>
+          </div>
+        </div>
+        <div class="wash"></div>
+        <div class="shade"></div>
+        <div class="copy">
+          <p class="scene">SCENE 05 · 夜色</p>
+          <h2><span class="line"><span>把今天，</span></span><span class="line"><span><em>走到灯火通明。</em></span></span></h2>
+          <p class="sub">ALL THE WAY INTO THE NIGHT</p>
+        </div>
+        <div class="chapter-num">05 / 05</div>
+      </article>
+    </div>
+
+    <!-- ================= 环境层 ================= -->
+    <canvas id="fx" aria-hidden="true"></canvas>
+    <div class="clouds" aria-hidden="true"><b></b><b></b><b></b></div>
+    <div class="grain" aria-hidden="true"></div>
+    <div class="scratch" aria-hidden="true"></div>
+    <div class="vignette" aria-hidden="true"></div>
+    <div class="bars" aria-hidden="true"><i id="barTop"></i><i id="barBottom"></i></div>
+
+    <!-- ================= HUD ================= -->
+    <div class="hud hud-top">
+      <span class="brand"><b></b>OUR LITTLE FILM <small>· 05</small></span>
+      <span id="hudLabel">A STORY IN FIVE SCENES</span>
+    </div>
+    <div class="hud hud-bottom">
+      <div class="swipe-note"><span class="pill"></span><span id="swipeText">滑动，继续放映</span></div>
+      <div class="dots" id="dots" aria-label="章节导航"></div>
+      <button class="next" id="next" type="button" aria-label="进入下一幕"><span>→</span></button>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <div class="fxhost" id="fxhost" aria-hidden="true"></div>
+
+    <!-- ================= 开场 ================= -->
+    <section class="opening" id="opening" aria-label="开场">
+      <div class="opening-card">
+        <p class="eyebrow">A LITTLE STORY · 05 SCENES</p>
+        <h1><span class="nl">把日常，</span><span class="nl"><em>拍成一部电影。</em></span></h1>
+        <p><span class="nl">五幕关于我们的小片段，</span><span class="nl">正在放映。</span></p>
+        <button class="start" id="start" type="button">开始放映 →</button>
+        <span class="opening-foot">竖屏观看效果更好</span>
+      </div>
+    </section>
+
+    <!-- ================= 婚礼信息 ================= -->
+    <section class="invite" id="invite" aria-label="婚礼信息">
+      <div class="card">
+        <button class="close" id="closeInvite" type="button" aria-label="返回故事">✕</button>
+        <p class="label">THE LAST SCENE · 邀请</p>
+        <h2><span class="nl">下一幕，</span><span class="nl">想请你到场。</span></h2>
+        <p class="names" id="names">新郎 &amp; 新娘</p>
+        <p class="lead"><span class="nl">五个日常片段，拼成我们的一辈子。</span><span class="nl">剩下的那一幕，希望你也在。</span></p>
+
+        <div class="facts">
+          <div class="fact"><small>DATE</small><strong id="factDate">2026.10.18</strong></div>
+          <div class="fact"><small>TIME</small><strong id="factTime">17:30 签到</strong></div>
+          <div class="fact wide"><small>PLACE</small><strong id="factPlace">湖畔礼堂 · 三楼宴会厅</strong></div>
+          <div class="fact wide"><small>ADDRESS</small><strong id="factAddress">示例市示例区湖畔路 88 号</strong></div>
+        </div>
+
+        <ul class="timeline" id="timeline"></ul>
+
+        <div class="actions">
+          <button class="action primary" id="mapButton" type="button">导航到场地</button>
+          <button class="action" id="copyButton" type="button">复制地址</button>
+          <button class="action" id="calendarButton" type="button">加入日历</button>
+          <button class="action" id="replayButton" type="button">重新放映</button>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* =========================================================
+     1. 可编辑配置：把这里改成你们的信息即可
+     ========================================================= */
+  var CONFIG = {
+    groom: '新郎',
+    bride: '新娘',
+    dateText: '2026.10.18',
+    dateISO: '20261018',
+    timeText: '17:30 签到',
+    venue: '湖畔礼堂 · 三楼宴会厅',
+    address: '示例市示例区湖畔路 88 号',
+    lng: 116.397428,
+    lat: 39.90923,
+    timeline: [
+      { time: '17:30', title: '签到 · 迎宾', desc: '茶歇、合影与祝福' },
+      { time: '18:18', title: '仪式开始', desc: '请提前十分钟入席' },
+      { time: '19:00', title: '晚宴 · 敬酒', desc: '一起吃到很晚' },
+      { time: '21:00', title: '送客', desc: '记得带走喜糖' }
+    ]
+  };
+
+  /* =========================================================
+     2. 基础引用
+     ========================================================= */
+  var app = document.getElementById('app');
+  var shell = document.getElementById('shell');
+  var fxhost = document.getElementById('fxhost');
+  var canvas = document.getElementById('fx');
+  var ctx = canvas.getContext('2d');
+  var toastEl = document.getElementById('toast');
+  var hudLabel = document.getElementById('hudLabel');
+  var swipeText = document.getElementById('swipeText');
+  var dotsWrap = document.getElementById('dots');
+  var nextBtn = document.getElementById('next');
+  var startBtn = document.getElementById('start');
+  var invite = document.getElementById('invite');
+  var chapters = [].slice.call(document.querySelectorAll('.chapter'));
+
+  var HUD_LABELS = [
+    'A STORY IN FIVE SCENES',
+    'LIGHTS, CAMERA, US',
+    'HOME, SWEET HOME',
+    'THE SCREEN GLOWS',
+    'WALK WITH ME'
+  ];
+
+  var OVERSCAN = 1.06;
+  var ZOOM_TO = 1.055;
+  var ZOOM_DUR = 11;
+
+  var state = {
+    index: 0,
+    busy: false,
+    started: false,
+    inviteOpen: false,
+    mx: 0, my: 0,
+    tmx: 0, tmy: 0,
+    chapterT0: performance.now()
+  };
+
+  var dpr = Math.min(window.devicePixelRatio || 1, 2);
+  var vw = 0, vh = 0;
+
+  /* =========================================================
+     3. 工具函数
+     ========================================================= */
+  function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
+
+  function setVh() {
+    document.documentElement.style.setProperty('--vh', (window.innerHeight * 0.01) + 'px');
+    app.style.height = window.innerHeight + 'px';
+  }
+
+  function hexToRgba(hex, a) {
+    var h = hex.replace('#', '');
+    if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+    var n = parseInt(h, 16);
+    return 'rgba(' + ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + a + ')';
+  }
+
+  var toastTimer = 0;
+  function toast(msg) {
+    if (!msg) return;
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toastEl.classList.remove('show'); }, 2600);
+  }
+
+  /* =========================================================
+     4. 每一幕：计算图片图层位置（保证焦点元素不被裁掉）
+     ========================================================= */
+  function layoutChapter(ch) {
+    var img = ch.querySelector('img.art');
+    var layer = ch.querySelector('.art-layer');
+    if (!img || !layer) return;
+    var nw = img.naturalWidth, nh = img.naturalHeight;
+    if (!nw || !nh) {
+      if (!img._bound) {
+        img._bound = true;
+        img.addEventListener('load', function () { layoutChapter(ch); });
+      }
+      return;
+    }
+    var W = shell.clientWidth, H = shell.clientHeight;
+    var s = Math.max(W / nw, H / nh) * OVERSCAN;
+    var cw = nw * s, chh = nh * s;
+    var f = (ch.dataset.focus || '50,50').split(',');
+    var fx = parseFloat(f[0]) / 100, fy = parseFloat(f[1]) / 100;
+
+    layer.style.width = cw + 'px';
+    layer.style.height = chh + 'px';
+    layer.style.left = (-(cw - W) * fx) + 'px';
+    layer.style.top = (-(chh - H) * fy) + 'px';
+
+    ch._geo = {
+      cw: cw, chh: chh,
+      left: -(cw - W) * fx, top: -(chh - H) * fy,
+      ox: fx * cw, oy: fy * chh
+    };
+  }
+
+  function layoutAll() {
+    setVh();
+    var W = shell.clientWidth, H = shell.clientHeight;
+    vw = W; vh = H;
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.round(W * dpr);
+    canvas.height = Math.round(H * dpr);
+    canvas.style.width = W + 'px';
+    canvas.style.height = H + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    for (var i = 0; i < chapters.length; i++) layoutChapter(chapters[i]);
+    fitAllText();
+    resetAmbient();
+  }
+
+  /* 图片坐标（0-1）→ shell 内像素坐标（含当前变换） */
+  function imagePointToScreen(ch, fx, fy) {
+    var g = ch._geo;
+    if (!g) return null;
+    var lx = fx * g.cw, ly = fy * g.chh;
+    var kb = ch._kb || 1;
+    var px = ch._px || 0, py = ch._py || 0;
+    return {
+      x: g.left + g.ox + (lx - g.ox) * kb + px,
+      y: g.top + g.oy + (ly - g.oy) * kb + py
+    };
+  }
+
+  /* =========================================================
+     4b. 文字永不换行：一行排不下就自动缩字号
+     ========================================================= */
+  var FIT_SELECTOR = [
+    '.copy .scene', '.copy .line > span', '.copy .sub',
+    '.opening-card .eyebrow', '.opening-card h1 > .nl', '.opening-card p > .nl', '.opening-foot',
+    '.card .label', '.card h2 > .nl', '.card .names', '.card .lead > .nl',
+    '.fact small', '.fact strong', '.timeline .d > b', '.timeline .d > span'
+  ].join(',');
+
+  var probeEl = null;
+  function naturalWidth(el) {
+    if (!probeEl) {
+      probeEl = document.createElement('span');
+      probeEl.style.cssText = 'position:absolute;left:-99999px;top:0;visibility:hidden;white-space:nowrap;display:inline-block;';
+      document.body.appendChild(probeEl);
+    }
+    var cs = getComputedStyle(el);
+    probeEl.style.fontFamily = cs.fontFamily;
+    probeEl.style.fontSize = cs.fontSize;
+    probeEl.style.fontWeight = cs.fontWeight;
+    probeEl.style.fontStyle = cs.fontStyle;
+    probeEl.style.letterSpacing = cs.letterSpacing;
+    probeEl.textContent = el.textContent;
+    return probeEl.getBoundingClientRect().width;
+  }
+
+  function availWidth(el) {
+    var p = el.parentElement;
+    if (!p) return 0;
+    var cs = getComputedStyle(p);
+    var w = p.clientWidth - (parseFloat(cs.paddingLeft) || 0) - (parseFloat(cs.paddingRight) || 0);
+    return w > 4 ? w : 0;
+  }
+
+  function fitAllText() {
+    var els = document.querySelectorAll(FIT_SELECTOR);
+    for (var i = 0; i < els.length; i++) {
+      var el = els[i];
+      el.style.fontSize = '';
+      var avail = availWidth(el);
+      if (!avail) continue;
+      var base = parseFloat(getComputedStyle(el).fontSize) || 12;
+      var w = naturalWidth(el);
+      if (w <= avail) continue;
+      // 只缩小、不换行；最多缩到原来的 62%
+      var size = Math.max(base * 0.62, base * (avail / w) * 0.985);
+      el.style.fontSize = size.toFixed(2) + 'px';
+    }
+  }
+
+  /* =========================================================
+     5. Canvas 粒子：光斑 / 竹叶 / 气泡 / 火花
+     ========================================================= */
+  var parts = [];
+  var spriteCache = {};
+  var AMBIENT_TINT = ['#ffd995', '#ffbe86', '#ffd398', '#c9c9ff', '#ffd382'];
+
+  function glowSprite(color) {
+    if (spriteCache[color]) return spriteCache[color];
+    var size = 64;
+    var c = document.createElement('canvas');
+    c.width = c.height = size;
+    var g = c.getContext('2d');
+    var rg = g.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+    rg.addColorStop(0, hexToRgba(color, 0.95));
+    rg.addColorStop(0.3, hexToRgba(color, 0.42));
+    rg.addColorStop(1, hexToRgba(color, 0));
+    g.fillStyle = rg;
+    g.fillRect(0, 0, size, size);
+    spriteCache[color] = c;
+    return c;
+  }
+
+  function addAmbient() {
+    var tint = AMBIENT_TINT[state.index] || '#ffd995';
+    var count = vw < 380 ? 16 : 24;
+    for (var i = 0; i < count; i++) {
+      parts.push({
+        type: 'bokeh', color: tint,
+        x: Math.random() * vw, y: Math.random() * vh,
+        r: 12 + Math.random() * 34,
+        a: 0.1 + Math.random() * 0.26,
+        vy: -(0.05 + Math.random() * 0.14),
+        vx: (Math.random() - 0.5) * 0.1,
+        ph: Math.random() * 6.28
+      });
+    }
+  }
+
+  function resetAmbient() {
+    parts = parts.filter(function (p) { return p.max; });
+    addAmbient();
+  }
+
+  function burst(type, x, y, n, opt) {
+    opt = opt || {};
+    for (var i = 0; i < n; i++) {
+      var p = { type: type, ph: Math.random() * 6.28 };
+      if (type === 'leaf') {
+        p.x = x + (Math.random() - 0.5) * (opt.spread || vw * 0.5);
+        p.y = y + (Math.random() - 0.5) * (opt.spread || vh * 0.3);
+        p.vx = (Math.random() - 0.5) * 3.4;
+        p.vy = -(0.5 + Math.random() * 2.1);
+        p.r = 6 + Math.random() * 12;
+        p.rot = Math.random() * 6.28;
+        p.vr = (Math.random() - 0.5) * 0.16;
+        p.a = 0.55 + Math.random() * 0.45;
+        p.life = 1.6 + Math.random() * 1.1;
+        p.color = ['#8fd6a0', '#b7e6b3', '#6fbf8a', '#ffe9a8'][i % 4];
+      } else if (type === 'spark') {
+        var ang = Math.random() * 6.28, sp = 1.2 + Math.random() * 4.2;
+        p.x = x; p.y = y;
+        p.vx = Math.cos(ang) * sp;
+        p.vy = Math.sin(ang) * sp - 0.7;
+        p.r = 1.2 + Math.random() * 2.6;
+        p.a = 0.75 + Math.random() * 0.25;
+        p.life = 0.5 + Math.random() * 0.65;
+        p.color = ['#fff6dd', '#ffe1a6', '#ffc98f'][i % 3];
+      } else if (type === 'glow') {
+        p.x = x; p.y = y;
+        p.r = 18 + Math.random() * 22;
+        p.a = 0.9;
+        p.life = 0.7 + Math.random() * 0.7;
+        p.delay = opt.delay ? opt.delay * (i + 1) : 0;
+        p.color = opt.color || '#ffd382';
+      }
+      p.max = p.life;
+      parts.push(p);
+    }
+  }
+
+  function drawLeaf(p, alpha) {
+    ctx.save();
+    ctx.translate(p.x, p.y);
+    ctx.rotate(p.rot);
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.moveTo(0, -p.r * 2.3);
+    ctx.quadraticCurveTo(p.r * 0.62, 0, 0, p.r * 2.3);
+    ctx.quadraticCurveTo(-p.r * 0.62, 0, 0, -p.r * 2.3);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function stepParticles(dt, time) {
+    ctx.clearRect(0, 0, vw, vh);
+    for (var i = parts.length - 1; i >= 0; i--) {
+      var p = parts[i];
+      var alpha;
+
+      if (p.type === 'bokeh') {
+        p.y += p.vy * dt * 60;
+        p.x += p.vx * dt * 60 + Math.sin(time * 0.6 + p.ph) * 0.16;
+        if (p.y < -60) { p.y = vh + 40; p.x = Math.random() * vw; }
+        if (p.x < -60) p.x = vw + 40;
+        if (p.x > vw + 60) p.x = -40;
+        alpha = p.a * (0.62 + 0.38 * Math.sin(time * 1.5 + p.ph));
+        ctx.globalAlpha = clamp(alpha, 0, 1);
+        var sp = glowSprite(p.color);
+        ctx.drawImage(sp, p.x - p.r, p.y - p.r, p.r * 2, p.r * 2);
+        continue;
+      }
+
+      if (p.delay > 0) { p.delay -= dt; continue; }
+      p.life -= dt;
+      if (p.life <= 0) { parts.splice(i, 1); continue; }
+      alpha = clamp(p.life / p.max, 0, 1);
+
+      if (p.type === 'leaf') {
+        p.x += p.vx * dt * 60;
+        p.y += p.vy * dt * 60;
+        p.vx *= 0.985;
+        p.vy += -0.012 * dt * 60;
+        p.rot += p.vr * dt * 60;
+        drawLeaf(p, alpha * p.a);
+      } else if (p.type === 'spark') {
+        p.x += p.vx * dt * 60;
+        p.y += p.vy * dt * 60;
+        p.vy += 0.055 * dt * 60;
+        p.vx *= 0.97;
+        ctx.globalAlpha = alpha * p.a;
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, Math.max(0.2, p.r * alpha), 0, 6.2832);
+        ctx.fill();
+      } else if (p.type === 'glow') {
+        var g = glowSprite(p.color);
+        var rr = p.r * (1 + (1 - alpha) * 2.4);
+        ctx.globalAlpha = alpha * p.a * 0.95;
+        ctx.drawImage(g, p.x - rr, p.y - rr, rr * 2, rr * 2);
+      }
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  /* =========================================================
+     6. 主循环：缓慢推进 + 漂移 + 视差
+     ========================================================= */
+  var lastT = performance.now();
+  function loop(now) {
+    var dt = Math.min((now - lastT) / 1000, 0.05);
+    lastT = now;
+    var time = now * 0.001;
+
+    state.mx += (state.tmx - state.mx) * Math.min(1, dt * 5.5);
+    state.my += (state.tmy - state.my) * Math.min(1, dt * 5.5);
+    shell.style.setProperty('--mx', state.mx.toFixed(3));
+    shell.style.setProperty('--my', state.my.toFixed(3));
+
+    var ch = chapters[state.index];
+    if (ch && ch._geo) {
+      var t = (now - state.chapterT0) / 1000;
+      var k = clamp(t / ZOOM_DUR, 0, 1);
+      var ease = 1 - Math.pow(1 - k, 3);
+      var kb = 1 + (ZOOM_TO - 1) * ease;
+      var px = -state.mx * 13 + Math.sin(time * 0.13) * 5;
+      var py = -state.my * 10 + Math.cos(time * 0.11) * 4;
+      ch._kb = kb; ch._px = px; ch._py = py;
+      var layer = ch._layerEl || (ch._layerEl = ch.querySelector('.art-layer'));
+      if (layer) {
+        layer.style.transform = 'translate3d(' + px.toFixed(2) + 'px,' + py.toFixed(2) + 'px,0) scale(' + kb.toFixed(4) + ')';
+      }
+    }
+
+    stepParticles(dt, time);
+    requestAnimationFrame(loop);
+  }
+
+  /* =========================================================
+     7. 转场特效
+     ========================================================= */
+  function spawn(cls, html, ttl) {
+    var el = document.createElement('div');
+    el.className = cls;
+    if (html) el.innerHTML = html;
+    fxhost.appendChild(el);
+    setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, ttl || 1600);
+    return el;
+  }
+
+  var FX = {
+    /* 竹叶与光斑散开 */
+    leaves: function () {
+      spawn('fx-veil leaves', '', 1100);
+      burst('leaf', vw * 0.5, vh * 0.56, 28, { spread: vw * 0.9 });
+      burst('spark', vw * 0.5, vh * 0.5, 46, {});
+      for (var i = 0; i < 8; i++) {
+        burst('glow', vw * (0.12 + Math.random() * 0.76), vh * (0.18 + Math.random() * 0.6), 1,
+          { color: '#ffe9a8', delay: 0.05 * i });
+      }
+    },
+    /* 电影票撕开 */
+    ticket: function () {
+      spawn('fx-ticket', '<div class="half top"></div><div class="half bottom"></div><div class="tear"></div>', 1200);
+      burst('spark', vw * 0.5, vh * 0.5, 22, {});
+    },
+    /* 窗光渐亮 */
+    window: function () {
+      spawn('fx-window', '<div class="panes"></div><div class="bloom"></div>', 1200);
+      burst('glow', vw * 0.6, vh * 0.45, 2, { color: '#ffd7a0', delay: 0.12 });
+    },
+    /* 银幕闪白 */
+    flash: function () {
+      spawn('fx-flash', '', 900);
+      burst('spark', vw * 0.5, vh * 0.3, 18, {});
+    },
+    /* 灯笼光晕扩散 */
+    lantern: function () {
+      var ch = chapters[4];
+      var pts = [[88, 52], [93, 58], [84, 47], [12, 55], [6, 60]];
+      for (var i = 0; i < pts.length; i++) {
+        var s = imagePointToScreen(ch, pts[i][0] / 100, pts[i][1] / 100);
+        if (!s || s.x < -60 || s.x > vw + 60) continue;
+        var el = document.createElement('span');
+        el.className = 'fx-halo';
+        el.style.left = s.x + 'px';
+        el.style.top = s.y + 'px';
+        el.style.animationDelay = (i * 0.07) + 's';
+        fxhost.appendChild(el);
+        (function (node) {
+          setTimeout(function () { if (node.parentNode) node.parentNode.removeChild(node); }, 1300);
+        })(el);
+      }
+      spawn('fx-veil glow', '', 1100);
+      burst('glow', vw * 0.5, vh * 0.5, 4, { color: '#ffb46b', delay: 0.06 });
+    }
+  };
+
+  /* 胶片收束 → 婚礼信息页 */
+  function filmCollapse(done) {
+    spawn('fx-film', '<div class="bar top"></div><div class="bar bottom"></div><div class="strip"></div><div class="gate"></div>', 1500);
+    var top = document.getElementById('barTop');
+    var bottom = document.getElementById('barBottom');
+    setTimeout(function () {
+      top.style.transition = 'height .55s cubic-bezier(.2,.8,.2,1)';
+      bottom.style.transition = 'height .55s cubic-bezier(.2,.8,.2,1)';
+      top.style.height = 'calc(50% - 16px)';
+      bottom.style.height = 'calc(50% - 16px)';
+    }, 30);
+    setTimeout(function () { if (done) done(); }, 640);
+    setTimeout(function () {
+      top.style.height = '0px';
+      bottom.style.height = '0px';
+    }, 1200);
+  }
+
+  /* =========================================================
+     8. 章节切换
+     ========================================================= */
+  function buildDots() {
+    chapters.forEach(function (ch, i) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.setAttribute('aria-label', '第 ' + (i + 1) + ' 幕');
+      if (i === 0) b.classList.add('active');
+      b.addEventListener('click', function (e) {
+        e.stopPropagation();
+        goTo(i);
+      });
+      dotsWrap.appendChild(b);
+    });
+  }
+
+  function updateChrome() {
+    var ch = chapters[state.index];
+    var kids = dotsWrap.children;
+    for (var i = 0; i < kids.length; i++) kids[i].classList.toggle('active', i === state.index);
+    hudLabel.textContent = HUD_LABELS[state.index] || '';
+    shell.style.setProperty('--accent', ch.dataset.accent || '#ffd995');
+    var last = state.index === chapters.length - 1;
+    nextBtn.querySelector('span').textContent = last ? '✦' : '→';
+    nextBtn.setAttribute('aria-label', last ? '进入婚礼信息' : '进入下一幕');
+    swipeText.textContent = last ? '点 ✦ 看邀请' : '滑动，继续放映';
+  }
+
+  function goTo(target) {
+    if (state.busy || state.inviteOpen || target < 0 || target > chapters.length - 1 || target === state.index) return;
+    state.busy = true;
+
+    var out = chapters[state.index];
+    var fx = FX[out.dataset.fx];
+    if (fx) fx();
+    out.classList.remove('active');
+
+    state.index = target;
+    state.chapterT0 = performance.now();
+    var inc = chapters[target];
+    inc.classList.add('active');
+
+    var layer = inc.querySelector('.art-layer');
+    inc._kb = 1; inc._px = 0; inc._py = 0;
+    if (layer) layer.style.transform = 'translate3d(0,0,0) scale(1)';
+
+    updateChrome();
+    resetAmbient();
+
+    setTimeout(function () { state.busy = false; }, 820);
+  }
+
+  /* =========================================================
+     9. 手势 / 交互
+     ========================================================= */
+  var swipe = { active: false, sx: 0, sy: 0, lx: 0, ly: 0, t: 0, lastSwipe: 0 };
+
+  function insideInvite(el) {
+    return !!(el && el.closest && el.closest('.invite'));
+  }
+
+  function setParallax(clientX, clientY) {
+    var r = shell.getBoundingClientRect();
+    state.tmx = clamp(((clientX - r.left) / r.width) * 2 - 1, -1, 1);
+    state.tmy = clamp(((clientY - r.top) / r.height) * 2 - 1, -1, 1);
+  }
+
+  function beginSwipe(x, y) {
+    swipe.active = true;
+    swipe.sx = x; swipe.sy = y; swipe.lx = x; swipe.ly = y;
+    swipe.t = performance.now();
+  }
+
+  function endSwipe() {
+    if (!swipe.active) return;
+    swipe.active = false;
+    var dx = swipe.lx - swipe.sx, dy = swipe.ly - swipe.sy;
+    var fast = (performance.now() - swipe.t) < 500;
+    var threshold = fast ? 42 : 62;
+    if (Math.abs(dx) > Math.abs(dy)) {
+      if (Math.abs(dx) > threshold) {
+        swipe.lastSwipe = performance.now();
+        if (dx < 0) goTo(state.index + 1); else goTo(state.index - 1);
+      }
+    } else if (Math.abs(dy) > threshold) {
+      swipe.lastSwipe = performance.now();
+      if (dy < 0) goTo(state.index + 1); else goTo(state.index - 1);
+    }
+  }
+
+  shell.addEventListener('touchstart', function (e) {
+    if (insideInvite(e.target)) return;
+    var t = e.touches[0];
+    beginSwipe(t.clientX, t.clientY);
+    setParallax(t.clientX, t.clientY);
+  }, { passive: true });
+
+  shell.addEventListener('touchmove', function (e) {
+    if (!swipe.active) return;
+    var t = e.touches[0];
+    swipe.lx = t.clientX; swipe.ly = t.clientY;
+    setParallax(t.clientX, t.clientY);
+  }, { passive: true });
+
+  shell.addEventListener('touchend', function () { endSwipe(); }, { passive: true });
+  shell.addEventListener('touchcancel', function () { swipe.active = false; }, { passive: true });
+
+  shell.addEventListener('mousedown', function (e) {
+    if (insideInvite(e.target)) return;
+    beginSwipe(e.clientX, e.clientY);
+    setParallax(e.clientX, e.clientY);
+  });
+  window.addEventListener('mousemove', function (e) {
+    if (swipe.active) { swipe.lx = e.clientX; swipe.ly = e.clientY; }
+    setParallax(e.clientX, e.clientY);
+  });
+  window.addEventListener('mouseup', function () { endSwipe(); });
+
+  shell.addEventListener('wheel', function (e) {
+    if (state.inviteOpen) return;
+    var d = Math.abs(e.deltaY) >= Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
+    if (Math.abs(d) < 24) return;
+    e.preventDefault();
+    if (state.busy) return;
+    if (d > 0) goTo(state.index + 1); else goTo(state.index - 1);
+  }, { passive: false });
+
+  window.addEventListener('keydown', function (e) {
+    if (state.inviteOpen) {
+      if (e.key === 'Escape') closeInvite();
+      return;
+    }
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); goTo(state.index + 1); }
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); goTo(state.index - 1); }
+    if (e.key === 'Enter') openInvite();
+  });
+
+  nextBtn.addEventListener('click', function (e) {
+    e.stopPropagation();
+    if (state.index === chapters.length - 1) openInvite();
+    else goTo(state.index + 1);
+  });
+
+  /* =========================================================
+     11. 开场：笔刷擦拭
+     ========================================================= */
+  function cssLinearGradient(c, W, H, deg, stops) {
+    var a = (deg - 90) * Math.PI / 180;
+    var dx = Math.cos(a), dy = Math.sin(a);
+    var len = Math.abs(W * dx) + Math.abs(H * dy);
+    var cx = W / 2, cy = H / 2;
+    var g = c.createLinearGradient(cx - dx * len / 2, cy - dy * len / 2, cx + dx * len / 2, cy + dy * len / 2);
+    for (var i = 0; i < stops.length; i++) g.addColorStop(stops[i][0], stops[i][1]);
+    return g;
+  }
+
+  function brushWipe() {
+    var W = shell.clientWidth, H = shell.clientHeight;
+    var cv = document.createElement('canvas');
+    cv.className = 'wipe-canvas';
+    cv.width = Math.round(W * dpr);
+    cv.height = Math.round(H * dpr);
+    cv.style.width = W + 'px';
+    cv.style.height = H + 'px';
+    var c = cv.getContext('2d');
+    c.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    c.fillStyle = cssLinearGradient(c, W, H, 155, [[0, '#0d234c'], [0.52, '#304385'], [1, '#db7d6f']]);
+    c.fillRect(0, 0, W, H);
+
+    c.save();
+    c.globalAlpha = 0.5;
+    c.translate(W / 2, H / 2);
+    c.rotate(-8 * Math.PI / 180);
+    c.translate(-W / 2, -H / 2);
+    for (var i = 0; i < 46; i++) {
+      c.fillStyle = i % 2 ? 'rgba(255,227,177,.09)' : 'rgba(10,26,60,.09)';
+      c.fillRect(-W * 0.2 + i * (W * 0.05), -H * 0.2, W * 0.02, H * 1.4);
+    }
+    c.restore();
+
+    // 画布直接挂在 shell 上（z-index 高于开场层），并立刻隐藏开场页
+    shell.appendChild(cv);
+    app.classList.add('started');
+
+    var paths = [
+      { x0: -0.15, y0: 0.34, x1: 1.15, y1: 0.16, delay: 0 },
+      { x0: -0.15, y0: 0.62, x1: 1.15, y1: 0.42, delay: 0.14 },
+      { x0: -0.15, y0: 0.9, x1: 1.15, y1: 0.72, delay: 0.28 },
+      { x0: -0.15, y0: 0.5, x1: 1.15, y1: 0.5, delay: 0.4, wide: true }
+    ];
+    var dur = 0.95, total = dur + 0.45;
+    var t0 = performance.now();
+    var sparks = [];
+
+    function stamp(x, y, r, strength) {
+      c.save();
+      c.globalCompositeOperation = 'destination-out';
+      for (var k = 0; k < 4; k++) {
+        var ox = (Math.random() - 0.5) * r * 1.1;
+        var oy = (Math.random() - 0.5) * r * 0.5;
+        var rr = r * (0.5 + Math.random() * 0.6);
+        var rg = c.createRadialGradient(x + ox, y + oy, 0, x + ox, y + oy, rr);
+        rg.addColorStop(0, 'rgba(0,0,0,' + strength + ')');
+        rg.addColorStop(0.55, 'rgba(0,0,0,' + (strength * 0.72) + ')');
+        rg.addColorStop(1, 'rgba(0,0,0,0)');
+        c.fillStyle = rg;
+        c.beginPath();
+        c.arc(x + ox, y + oy, rr, 0, 6.2832);
+        c.fill();
+      }
+      c.restore();
+    }
+
+    function frame(now) {
+      var el = (now - t0) / 1000;
+      var done = true;
+      for (var i = 0; i < paths.length; i++) {
+        var p = paths[i];
+        var prog = (el - p.delay) / dur;
+        if (prog <= 0) { done = false; continue; }
+        if (prog < 1) done = false;
+        var t = clamp(prog, 0, 1);
+        var e = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+        var x = (p.x0 + (p.x1 - p.x0) * e) * W;
+        var y = (p.y0 + (p.y1 - p.y0) * e) * H;
+        var r = (p.wide ? H * 0.2 : H * 0.13) * (0.85 + 0.3 * Math.random());
+        stamp(x, y, r, 1);
+        if (Math.random() < 0.85) {
+          sparks.push({
+            type: 'spark', life: 0.6 + Math.random() * 0.5, max: 0.9,
+            x: x + (Math.random() - 0.5) * r,
+            y: y + (Math.random() - 0.5) * r * 0.7,
+            vx: (Math.random() - 0.5) * 3.4,
+            vy: -(0.4 + Math.random() * 2.4),
+            r: 1 + Math.random() * 2.4, a: 0.9,
+            color: ['#fff6dd', '#ffe1a6', '#ffc98f'][i % 3]
+          });
+        }
+      }
+      if (!done) {
+        requestAnimationFrame(frame);
+      } else {
+        c.save();
+        c.globalCompositeOperation = 'destination-out';
+        var fade = c.createRadialGradient(W * 0.5, H * 0.5, 0, W * 0.5, H * 0.5, Math.max(W, H) * 0.8);
+        fade.addColorStop(0, 'rgba(0,0,0,.95)');
+        fade.addColorStop(1, 'rgba(0,0,0,.75)');
+        c.fillStyle = fade;
+        c.fillRect(0, 0, W, H);
+        c.restore();
+        setTimeout(function () { if (cv.parentNode) cv.parentNode.removeChild(cv); }, 260);
+      }
+    }
+
+    (function pump() {
+      if (sparks.length) {
+        for (var i = 0; i < sparks.length; i++) parts.push(sparks[i]);
+        sparks.length = 0;
+      }
+      if (performance.now() - t0 < total * 1000 + 400) requestAnimationFrame(pump);
+    })();
+
+    requestAnimationFrame(frame);
+  }
+
+  function startShow() {
+    if (state.started) return;
+    state.started = true;
+    app.classList.add('wiping');
+    setTimeout(function () { brushWipe(); }, 320);
+  }
+
+  startBtn.addEventListener('click', startShow);
+
+  /* =========================================================
+     12. 婚礼信息页
+     ========================================================= */
+  function openInvite() {
+    if (state.inviteOpen || !state.started) return;
+    filmCollapse(function () {
+      state.inviteOpen = true;
+      app.classList.add('invite-open');
+      invite.scrollTop = 0;
+    });
+  }
+
+  function closeInvite() {
+    state.inviteOpen = false;
+    app.classList.remove('invite-open');
+  }
+
+  document.getElementById('closeInvite').addEventListener('click', closeInvite);
+
+  document.getElementById('replayButton').addEventListener('click', function () {
+    closeInvite();
+    chapters[state.index].classList.remove('active');
+    chapters[0].classList.add('active');
+    state.index = 0;
+    state.chapterT0 = performance.now();
+    updateChrome();
+    resetAmbient();
+    toast('重新放映，从第一幕开始。');
+  });
+
+  document.getElementById('mapButton').addEventListener('click', function () {
+    var url = 'https://uri.amap.com/marker?position=' + CONFIG.lng + ',' + CONFIG.lat +
+      '&name=' + encodeURIComponent(CONFIG.venue) + '&src=wedding-h5&coordinate=gaode&callnative=1';
+    try {
+      var w = window.open(url, '_blank');
+      if (!w) location.href = url;
+    } catch (err) {
+      toast('打开地图失败，请手动搜索场地。');
+    }
+  });
+
+  document.getElementById('copyButton').addEventListener('click', function () {
+    var text = CONFIG.venue + ' ' + CONFIG.address;
+    function ok() { toast('地址已复制'); }
+    function fallback() {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); ok(); } catch (e) { toast(text); }
+      document.body.removeChild(ta);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(ok, fallback);
+    } else fallback();
+  });
+
+  document.getElementById('calendarButton').addEventListener('click', function () {
+    var dt = CONFIG.dateISO;
+    var ics = [
+      'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//wedding-h5//CN', 'BEGIN:VEVENT',
+      'UID:wedding-' + Date.now() + '@local',
+      'DTSTAMP:' + dt + 'T000000Z',
+      'DTSTART;VALUE=DATE:' + dt,
+      'DTEND;VALUE=DATE:' + dt,
+      'SUMMARY:' + CONFIG.groom + ' & ' + CONFIG.bride + ' 的婚礼',
+      'LOCATION:' + CONFIG.venue + ' ' + CONFIG.address,
+      'DESCRIPTION:五幕小电影，最后一幕想请你到场。',
+      'END:VEVENT', 'END:VCALENDAR'
+    ].join('\r\n');
+    try {
+      var a = document.createElement('a');
+      a.href = 'data:text/calendar;charset=utf-8,' + encodeURIComponent(ics);
+      a.download = 'wedding-' + dt + '.ics';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      toast('已生成日历文件');
+    } catch (e) {
+      toast('日期：' + CONFIG.dateText + ' ' + CONFIG.timeText);
+    }
+  });
+
+  /* =========================================================
+     13. 初始化
+     ========================================================= */
+  function renderConfig() {
+    document.getElementById('names').textContent = CONFIG.groom + ' & ' + CONFIG.bride;
+    document.getElementById('factDate').textContent = CONFIG.dateText;
+    document.getElementById('factTime').textContent = CONFIG.timeText;
+    document.getElementById('factPlace').textContent = CONFIG.venue;
+    document.getElementById('factAddress').textContent = CONFIG.address;
+    document.getElementById('timeline').innerHTML = CONFIG.timeline.map(function (it) {
+      return '<li><span class="t">' + it.time + '</span><span class="d"><b>' + it.title + '</b><span>' + it.desc + '</span></span></li>';
+    }).join('');
+  }
+
+  function init() {
+    chapters[0].classList.add('active');
+    buildDots();
+    renderConfig();
+    layoutAll();
+    updateChrome();
+
+    var resizeTimer = 0;
+    window.addEventListener('resize', function () {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(layoutAll, 160);
+    }, { passive: true });
+    window.addEventListener('orientationchange', function () { setTimeout(layoutAll, 260); });
+
+    [].slice.call(document.querySelectorAll('img.art')).forEach(function (img) {
+      var ch = img.closest('.chapter');
+      if (img.complete) layoutChapter(ch);
+      else img.addEventListener('load', function () { layoutChapter(ch); });
+    });
+
+    requestAnimationFrame(function (t) { lastT = t; loop(t); });
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>

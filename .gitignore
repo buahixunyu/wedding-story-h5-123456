@@ -1,0 +1,9 @@
+.cdp/
+.workbuddy-ai/
+outputs/
+*.zip
+
+preview*.png
+beian-*.png
+opening-swipe-hint.png
+qrcode-invite.png
