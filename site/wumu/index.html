@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="format-detection" content="telephone=no">
 <meta name="theme-color" content="#070c1f">
-<meta name="description" content="五幕关于我们的小片段，一份可以滑动、点击、放映的婚礼邀请。">
+<meta name="description" content="五幕关于我们的小片段，一份可以滑动放映的婚礼邀请。">
 <title>我们的五幕小电影 · 婚礼邀请</title>
 <style>
   :root{
@@ -108,7 +108,7 @@
   /* ---------- 全部文字禁止换行（排不下由 JS 自动缩字号） ---------- */
   .nl{display:block}
   .copy .scene,.copy .line > span,.copy .sub,
-  .opening-card .eyebrow,.opening-card h1,.opening-card p,.opening-foot,.start,
+  .opening-card .eyebrow,.opening-card h1,.opening-foot,.opening-swipe,.start,
   .hud-top,.hud-top .brand,.hud-top > span,.swipe-note,
   .card .label,.card h2,.card .names,.card .lead,.fact small,.fact strong,
   .timeline .t,.timeline .d,.timeline .d b,.action,.toast{
@@ -133,6 +133,25 @@
   .next{display:grid;place-items:center;width:46px;height:46px;border-radius:50%;border:1px solid rgba(255,245,216,.55);background:rgba(10,26,60,.28);color:var(--cream);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);transition:transform .25s var(--ease),background .25s ease}
   .next:active{transform:scale(.94)}
   .next span{font-size:18px;line-height:1;transform:translateY(-1px)}
+
+  /* ---------- 背景音乐开关 ---------- */
+  .music{
+    position:absolute;z-index:15;right:22px;
+    top:max(46px,calc(env(safe-area-inset-top) + 28px));
+    width:38px;height:38px;border-radius:50%;display:grid;place-items:center;
+    background:rgba(10,26,60,.34);border:1px solid rgba(255,245,216,.42);
+    color:rgba(255,246,222,.9);
+    -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+    opacity:0;pointer-events:none;transform:translateY(-6px);
+    transition:opacity .5s ease,transform .5s var(--ease),background .25s ease;
+  }
+  .app.started .music{opacity:1;pointer-events:auto;transform:none}
+  .app.invite-open .music{opacity:0;pointer-events:none}
+  .app.started .music.mute{opacity:.6}
+  .music:active{background:rgba(10,26,60,.52)}
+  .music svg{width:19px;height:19px}
+  .music.mute .wave-on{display:none}
+  .music:not(.mute) .wave-off{display:none}
   .app.invite-open .hud{opacity:0;pointer-events:none}
 
   /* ---------- 提示气泡 ---------- */
@@ -152,10 +171,8 @@
   /* 1. 竹叶 + 光斑散开 */
   .fx-veil{position:absolute;inset:0;opacity:0}
   .fx-veil.leaves{background:radial-gradient(circle at 50% 60%,rgba(180,235,190,.5),rgba(30,90,60,.2) 60%,rgba(6,20,40,.72));animation:veilFade .95s ease-out forwards}
-  .fx-veil.flash{background:radial-gradient(circle at 50% 34%,#fffaf0,rgba(255,236,196,.8) 40%,rgba(120,120,255,.15) 78%);animation:veilFlash .62s ease-out forwards}
   .fx-veil.glow{background:radial-gradient(circle at 50% 50%,rgba(255,222,150,.75),rgba(255,150,90,.28) 46%,rgba(10,20,60,.7));animation:veilFade 1s ease-out forwards}
   @keyframes veilFade{0%{opacity:0}22%{opacity:.95}100%{opacity:0}}
-  @keyframes veilFlash{0%{opacity:0}12%{opacity:1}26%{opacity:.25}38%{opacity:.9}100%{opacity:0}}
 
   /* 2. 电影票撕开 */
   .fx-ticket{position:absolute;inset:0}
@@ -183,9 +200,15 @@
   .fx-window .bloom{position:absolute;inset:0;background:radial-gradient(circle at 50% 44%,rgba(255,250,230,.85),rgba(255,200,150,.35) 46%,transparent 76%)}
   @keyframes windowUp{0%{opacity:0;filter:brightness(.25)}14%{opacity:.85;filter:brightness(.62)}34%{opacity:1;filter:brightness(1.25)}70%{opacity:1;filter:brightness(1.45)}100%{opacity:0;filter:brightness(1.9)}}
 
-  /* 4. 银幕闪白 */
-  .fx-flash{position:absolute;inset:0;background:#fff8e6;opacity:0;animation:screenFlash .78s ease-out forwards}
-  @keyframes screenFlash{0%{opacity:0}8%{opacity:1}30%{opacity:1}46%{opacity:.45}60%{opacity:.82}100%{opacity:0}}
+  /* 4. 银幕闪白（投影光晕，不再整屏爆白） */
+  .fx-flash{
+    position:absolute;inset:-8%;opacity:0;
+    background:
+      radial-gradient(ellipse 76% 44% at 50% 27%,rgba(255,247,230,.85),rgba(255,230,192,.42) 44%,rgba(255,214,170,0) 78%),
+      linear-gradient(rgba(255,242,220,.12),rgba(255,242,220,.12));
+    animation:screenFlash .9s ease-out forwards;
+  }
+  @keyframes screenFlash{0%{opacity:0;transform:scale(.94)}14%{opacity:.62}30%{opacity:.42}46%{opacity:.52}68%{opacity:.2}100%{opacity:0;transform:scale(1.05)}}
 
   /* 5. 灯笼光晕扩散 */
   .fx-halo{
@@ -213,10 +236,12 @@
   .opening-card .eyebrow{margin:0 0 20px;font-size:10px;letter-spacing:.28em;color:rgba(255,245,215,.8)}
   .opening-card h1{margin:0;font-family:var(--serif);font-weight:600;font-size:clamp(36px,11vw,62px);line-height:1.12;color:#fff4d2;letter-spacing:.01em;text-shadow:0 8px 30px rgba(4,16,44,.4)}
   .opening-card h1 em{font-style:normal;color:#ffdc9d}
-  .opening-card p{margin:20px auto 0;max-width:270px;font-size:13px;line-height:1.85;color:rgba(255,248,224,.85)}
-  .start{position:relative;margin-top:30px;min-width:170px;min-height:48px;padding:0 24px;border-radius:999px;color:#20365f;background:#ffe3a6;box-shadow:0 14px 36px rgba(6,18,48,.28);transition:transform .25s var(--ease),background .25s ease}
+  .start{position:relative;margin-top:36px;min-width:170px;min-height:48px;padding:0 24px;border-radius:999px;color:#20365f;background:#ffe3a6;box-shadow:0 14px 36px rgba(6,18,48,.28);transition:transform .25s var(--ease),background .25s ease}
   .start:active{transform:scale(.96)}
   .opening-foot{display:block;margin-top:16px;font-size:10px;letter-spacing:.14em;color:rgba(255,247,220,.6)}
+  .opening-swipe{display:inline-flex;align-items:center;gap:7px;margin-top:22px;font-size:10px;letter-spacing:.2em;color:rgba(255,247,220,.7)}
+  .opening-swipe i{display:block;width:8px;height:8px;border-left:1.5px solid currentColor;border-top:1.5px solid currentColor;transform:rotate(45deg);animation:swipeUp 2s ease-in-out infinite}
+  @keyframes swipeUp{0%,100%{transform:rotate(45deg) translate(0,3px);opacity:.4}52%{transform:rotate(45deg) translate(0,-3px);opacity:1}}
   .wipe-canvas{position:absolute;inset:0;z-index:34;pointer-events:none}
 
   /* ---------- 婚礼信息页 ---------- */
@@ -304,7 +329,7 @@
           <div class="art-layer">
             <picture>
               <source srcset="assets/panda-zoo.webp" type="image/webp">
-              <img class="art" src="assets/panda-zoo.png" alt="情侣在动物园看熊猫的手绘插画" draggable="false" decoding="async">
+              <img class="art" src="assets/panda-zoo.webp" alt="情侣在动物园看熊猫的手绘插画" draggable="false" decoding="async">
             </picture>
           </div>
         </div>
@@ -324,7 +349,7 @@
           <div class="art-layer">
             <picture>
               <source srcset="assets/universal-studios.webp" type="image/webp">
-              <img class="art" src="assets/universal-studios.png" alt="情侣牵手走过电影主题乐园的手绘插画" draggable="false" decoding="async">
+              <img class="art" src="assets/universal-studios.webp" alt="情侣牵手走过电影主题乐园的手绘插画" draggable="false" decoding="async">
             </picture>
           </div>
         </div>
@@ -344,7 +369,7 @@
           <div class="art-layer">
             <picture>
               <source srcset="assets/livingroom-watermelon.webp" type="image/webp">
-              <img class="art" src="assets/livingroom-watermelon.png" alt="情侣在客厅一起吃西瓜的手绘插画" draggable="false" decoding="async">
+              <img class="art" src="assets/livingroom-watermelon.webp" alt="情侣在客厅一起吃西瓜的手绘插画" draggable="false" decoding="async">
             </picture>
           </div>
         </div>
@@ -364,7 +389,7 @@
           <div class="art-layer">
             <picture>
               <source srcset="assets/cinema.webp" type="image/webp">
-              <img class="art" src="assets/cinema.png" alt="情侣在电影院并肩看电影的手绘插画" draggable="false" decoding="async">
+              <img class="art" src="assets/cinema.webp" alt="情侣在电影院并肩看电影的手绘插画" draggable="false" decoding="async">
             </picture>
           </div>
         </div>
@@ -384,7 +409,7 @@
           <div class="art-layer">
             <picture>
               <source srcset="assets/night-market.webp" type="image/webp">
-              <img class="art" src="assets/night-market.png" alt="情侣牵手逛夜市的手绘插画" draggable="false" decoding="async">
+              <img class="art" src="assets/night-market.webp" alt="情侣牵手逛夜市的手绘插画" draggable="false" decoding="async">
             </picture>
           </div>
         </div>
@@ -419,6 +444,15 @@
     </div>
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <!-- 背景音乐开关 -->
+    <button class="music" id="music" type="button" aria-label="关闭背景音乐" aria-pressed="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+        <path d="M4 9v6h4l5 4V5L8 9H4z"/>
+        <g class="wave-on"><path d="M17 8a5 5 0 010 8"/><path d="M20 5.5a9 9 0 010 13"/></g>
+        <g class="wave-off"><path d="M17 9l5 6"/><path d="M22 9l-5 6"/></g>
+      </svg>
+    </button>
+
     <div class="fxhost" id="fxhost" aria-hidden="true"></div>
 
     <!-- ================= 开场 ================= -->
@@ -426,9 +460,9 @@
       <div class="opening-card">
         <p class="eyebrow">A LITTLE STORY · 05 SCENES</p>
         <h1><span class="nl">把日常，</span><span class="nl"><em>拍成一部电影。</em></span></h1>
-        <p><span class="nl">五幕关于我们的小片段，</span><span class="nl">正在放映。</span></p>
         <button class="start" id="start" type="button">开始放映 →</button>
         <span class="opening-foot">竖屏观看效果更好</span>
+        <span class="opening-swipe" aria-hidden="true"><i></i>上滑开始</span>
       </div>
     </section>
 
@@ -621,7 +655,7 @@
      ========================================================= */
   var FIT_SELECTOR = [
     '.copy .scene', '.copy .line > span', '.copy .sub',
-    '.opening-card .eyebrow', '.opening-card h1 > .nl', '.opening-card p > .nl', '.opening-foot',
+    '.opening-card .eyebrow', '.opening-card h1 > .nl', '.opening-foot',
     '.card .label', '.card h2 > .nl', '.card .names', '.card .lead > .nl',
     '.fact small', '.fact strong', '.timeline .d > b', '.timeline .d > span'
   ].join(',');
@@ -881,8 +915,8 @@
     },
     /* 银幕闪白 */
     flash: function () {
-      spawn('fx-flash', '', 900);
-      burst('spark', vw * 0.5, vh * 0.3, 18, {});
+      spawn('fx-flash', '', 1000);
+      burst('spark', vw * 0.5, vh * 0.3, 10, {});
     },
     /* 灯笼光晕扩散 */
     lantern: function () {
@@ -954,6 +988,7 @@
   }
 
   function goTo(target) {
+    if (!state.started) return;   /* 开场页只负责触发 startShow，不在这里翻页 */
     if (state.busy || state.inviteOpen || target < 0 || target > chapters.length - 1 || target === state.index) return;
     state.busy = true;
 
@@ -980,7 +1015,7 @@
   /* =========================================================
      9. 手势 / 交互
      ========================================================= */
-  var swipe = { active: false, sx: 0, sy: 0, lx: 0, ly: 0, t: 0, lastSwipe: 0 };
+  var swipe = { active: false, sx: 0, sy: 0, lx: 0, ly: 0, t: 0, lastSwipe: 0, consumed: false };
 
   function insideInvite(el) {
     return !!(el && el.closest && el.closest('.invite'));
@@ -994,16 +1029,38 @@
 
   function beginSwipe(x, y) {
     swipe.active = true;
+    swipe.consumed = false;
     swipe.sx = x; swipe.sy = y; swipe.lx = x; swipe.ly = y;
     swipe.t = performance.now();
+  }
+
+  /* =========================================================
+     开场页：上滑即开始
+     - 手势进行中（committed=false）就用更低阈值触发，好处有二：
+       ① 反馈即时，不必等抬手；
+       ② 此刻仍在 touch 序列内，用户激活态确定存在，
+          iOS / 微信的自动播放策略才允许 play() 真正出声。
+     - 手势被开场消费后标记 swipe.consumed，避免抬手时 endSwipe
+       又把它当成"上滑翻页"，导致一开场就跳到第二幕。
+     ========================================================= */
+  function openingSwipeStart(dy, dx, committed) {
+    if (state.started) return false;
+    var up = -dy;
+    var need = committed ? 34 : 24;
+    if (up < need || up < Math.abs(dx) * 0.8) return false;
+    swipe.consumed = true;
+    startShow();
+    return true;
   }
 
   function endSwipe() {
     if (!swipe.active) return;
     swipe.active = false;
+    if (swipe.consumed) { swipe.consumed = false; return; }
     var dx = swipe.lx - swipe.sx, dy = swipe.ly - swipe.sy;
     var fast = (performance.now() - swipe.t) < 500;
     var threshold = fast ? 42 : 62;
+    if (openingSwipeStart(dy, dx, true)) return;
     if (Math.abs(dx) > Math.abs(dy)) {
       if (Math.abs(dx) > threshold) {
         swipe.lastSwipe = performance.now();
@@ -1027,6 +1084,7 @@
     var t = e.touches[0];
     swipe.lx = t.clientX; swipe.ly = t.clientY;
     setParallax(t.clientX, t.clientY);
+    if (!state.started) openingSwipeStart(swipe.ly - swipe.sy, swipe.lx - swipe.sx, false);
   }, { passive: true });
 
   shell.addEventListener('touchend', function () { endSwipe(); }, { passive: true });
@@ -1038,7 +1096,10 @@
     setParallax(e.clientX, e.clientY);
   });
   window.addEventListener('mousemove', function (e) {
-    if (swipe.active) { swipe.lx = e.clientX; swipe.ly = e.clientY; }
+    if (swipe.active) {
+      swipe.lx = e.clientX; swipe.ly = e.clientY;
+      if (!state.started) openingSwipeStart(swipe.ly - swipe.sy, swipe.lx - swipe.sx, false);
+    }
     setParallax(e.clientX, e.clientY);
   });
   window.addEventListener('mouseup', function () { endSwipe(); });
@@ -1048,6 +1109,7 @@
     var d = Math.abs(e.deltaY) >= Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
     if (Math.abs(d) < 24) return;
     e.preventDefault();
+    if (!state.started) { startShow(); return; }
     if (state.busy) return;
     if (d > 0) goTo(state.index + 1); else goTo(state.index - 1);
   }, { passive: false });
@@ -1055,6 +1117,12 @@
   window.addEventListener('keydown', function (e) {
     if (state.inviteOpen) {
       if (e.key === 'Escape') closeInvite();
+      return;
+    }
+    if (!state.started) {
+      if (e.key === ' ' || e.key === 'Enter' || e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+        e.preventDefault(); startShow();
+      }
       return;
     }
     if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); goTo(state.index + 1); }
@@ -1191,9 +1259,323 @@
     requestAnimationFrame(frame);
   }
 
+  /* =========================================================
+     11.5 背景音乐
+     按 SOURCES 顺序探测：assets/a-thousand-years.mp3 -> .m4a -> assets/bgm.mp3；
+     全部不存在时回落到内置的原创钢琴曲（WebAudio 实时合成，零文件体积）。
+     当前随包发布的是 assets/bgm.mp3：
+       曲名 Emotional Piano And Strings / 作者 CozyVibes
+       来源 Pixabay，Pixabay Content License（免费商用、无需署名）
+       已做无缝循环处理：旋转点 6s + 3s 等功率交叉淡化，时长 107.86s
+     若要改用别的曲子，把文件放进 assets/ 并让文件名匹配 SOURCES 即可，无需改代码。
+     ========================================================= */
+  var Music = (function () {
+    var SOURCES = [
+      'assets/a-thousand-years.mp3',
+      'assets/a-thousand-years.m4a',
+      'assets/bgm.mp3'
+    ];
+    var VOL = 0.55;
+    var el = null, fileOk = false, probeDone = false;
+    var started = false, muted = false, pendingSwitch = false;
+
+    /* ---------- A. 外部音频文件 ---------- */
+    function probe(i) {
+      i = i || 0;
+      if (i >= SOURCES.length) { probeDone = true; return; }
+      var a = new Audio();
+      a.preload = 'auto';
+      a.loop = true;
+      a.volume = 0;
+      a.setAttribute('playsinline', '');
+      var settled = false;
+      function ok() {
+        if (settled) return;
+        settled = true;
+        el = a; fileOk = true; probeDone = true;
+        if (pendingSwitch) crossToFile();
+      }
+      function bad() {
+        if (settled) return;
+        settled = true;
+        a.removeAttribute('src');
+        probe(i + 1);
+      }
+      a.addEventListener('canplaythrough', ok);
+      a.addEventListener('loadeddata', ok);
+      a.addEventListener('error', bad);
+      setTimeout(function () { if (!settled) { settled = true; probe(i + 1); } }, 8000);
+      a.src = SOURCES[i];
+      try { a.load(); } catch (e) { bad(); }
+    }
+
+    var fadeIv = null;
+    function fadeEl(to, ms) {
+      if (!el) return;
+      if (fadeIv) { clearInterval(fadeIv); fadeIv = null; }
+      var from = el.volume, t0 = Date.now();
+      ms = ms || 1200;
+      fadeIv = setInterval(function () {
+        var k = Math.min(1, (Date.now() - t0) / ms);
+        try { el.volume = Math.max(0, Math.min(1, from + (to - from) * k)); } catch (e) {}
+        if (k >= 1) { clearInterval(fadeIv); fadeIv = null; }
+      }, 60);
+    }
+
+    function playFile() {
+      if (!el) return;
+      el.loop = true;
+      el.volume = 0;
+      var pr = null;
+      try { pr = el.play(); } catch (e) { pr = null; }
+      function up() { fadeEl(muted ? 0 : VOL, 1600); }
+      if (pr && pr.then) { pr.then(up).catch(function () {}); }
+      else { up(); }
+    }
+
+    function crossToFile() {
+      if (!el || !fileOk) return;
+      playFile();
+      if (ac) {
+        master.gain.cancelScheduledValues(ac.currentTime);
+        master.gain.setTargetAtTime(0.0001, ac.currentTime, 0.7);
+        setTimeout(function () {
+          if (timer) { clearInterval(timer); timer = null; }
+          playing = false;
+        }, 3000);
+      }
+    }
+
+    /* ---------- B. 内置原创钢琴曲（WebAudio 实时合成） ---------- */
+    var ac = null, master = null, revIn = null, timer = null, playing = false;
+    var EIGHTH = 0.30, gstep = 0, nextT = 0;
+
+    function ensureSynth() {
+      if (ac) return true;
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return false;
+      ac = new AC();
+      master = ac.createGain();
+      master.gain.value = 0.0001;
+      var comp = ac.createDynamicsCompressor();
+      comp.threshold.value = -18; comp.ratio.value = 4; comp.attack.value = 0.02;
+      master.connect(comp); comp.connect(ac.destination);
+
+      // 指数衰减噪声作为简易混响 IR
+      var sr = ac.sampleRate, len = Math.floor(sr * 2.6);
+      var ir = ac.createBuffer(2, len, sr);
+      for (var c = 0; c < 2; c++) {
+        var d = ir.getChannelData(c);
+        for (var i = 0; i < len; i++) {
+          d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.6);
+        }
+      }
+      var conv = ac.createConvolver(); conv.buffer = ir;
+      var wet = ac.createGain(); wet.gain.value = 0.34;
+      revIn = ac.createGain(); revIn.gain.value = 1;
+      revIn.connect(conv); conv.connect(wet); wet.connect(master);
+      return true;
+    }
+
+    function mtof(m) { return 440 * Math.pow(2, (m - 69) / 12); }
+
+    // 钢琴：三角波 + 泛音，快起音、长衰减
+    function piano(t, midi, vel, dur) {
+      var f = mtof(midi);
+      var g = ac.createGain(), lp = ac.createBiquadFilter();
+      lp.type = 'lowpass'; lp.Q.value = 0.4;
+      lp.frequency.setValueAtTime(Math.min(5200, f * 9), t);
+      lp.frequency.exponentialRampToValueAtTime(Math.max(700, f * 2.4), t + dur);
+
+      var o1 = ac.createOscillator(); o1.type = 'triangle'; o1.frequency.value = f;
+      var o2 = ac.createOscillator(); o2.type = 'sine'; o2.frequency.value = f * 2;
+      var g2 = ac.createGain(); g2.gain.value = 0.20;
+      var o3 = ac.createOscillator(); o3.type = 'sine'; o3.frequency.value = f * 3.01;
+      var g3 = ac.createGain(); g3.gain.value = 0.05;
+
+      o1.connect(lp); o2.connect(g2); g2.connect(lp); o3.connect(g3); g3.connect(lp);
+      lp.connect(g);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.linearRampToValueAtTime(Math.max(0.0003, vel), t + 0.008);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      g.connect(master); g.connect(revIn);
+      o1.start(t); o2.start(t); o3.start(t);
+      o1.stop(t + dur + 0.05); o2.stop(t + dur + 0.05); o3.stop(t + dur + 0.05);
+    }
+
+    // 弦乐铺底：失谐锯齿 + 慢起音
+    function pad(t, notes, dur) {
+      for (var n = 0; n < notes.length; n++) {
+        var f = mtof(notes[n]);
+        var g = ac.createGain(), lp = ac.createBiquadFilter();
+        lp.type = 'lowpass';
+        lp.frequency.setValueAtTime(680, t);
+        lp.frequency.linearRampToValueAtTime(1650, t + dur * 0.5);
+        for (var k = 0; k < 2; k++) {
+          var o = ac.createOscillator();
+          o.type = 'sawtooth';
+          o.frequency.value = f * (k ? 1.0045 : 0.9955);
+          var vg = ac.createGain(); vg.gain.value = 0.5;
+          o.connect(vg); vg.connect(lp);
+          o.start(t); o.stop(t + dur + 0.4);
+        }
+        lp.connect(g);
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.linearRampToValueAtTime(0.030, t + dur * 0.45);
+        g.gain.linearRampToValueAtTime(0.017, t + dur * 0.82);
+        g.gain.linearRampToValueAtTime(0.0001, t + dur + 0.35);
+        g.connect(master); g.connect(revIn);
+      }
+    }
+
+    // 低音
+    function bass(t, midi, dur) {
+      var f = mtof(midi);
+      var g = ac.createGain(), lp = ac.createBiquadFilter();
+      lp.type = 'lowpass'; lp.frequency.value = 320;
+      var o1 = ac.createOscillator(); o1.type = 'sine'; o1.frequency.value = f;
+      var o2 = ac.createOscillator(); o2.type = 'triangle'; o2.frequency.value = f;
+      var g2 = ac.createGain(); g2.gain.value = 0.32;
+      o1.connect(lp); o2.connect(g2); g2.connect(lp);
+      lp.connect(g);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.linearRampToValueAtTime(0.22, t + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      g.connect(master);
+      o1.start(t); o2.start(t);
+      o1.stop(t + dur + 0.05); o2.stop(t + dur + 0.05);
+    }
+
+    // 8 小节循环：Bb - Gm7 - Eb - F / Bb - Gm7 - Ebmaj9 - F
+    var BARS = [
+      { root: 58, tones: [58, 62, 65, 69] },
+      { root: 55, tones: [55, 58, 62, 65] },
+      { root: 51, tones: [51, 55, 58, 62] },
+      { root: 53, tones: [53, 57, 60, 65] },
+      { root: 58, tones: [58, 62, 65, 69] },
+      { root: 55, tones: [55, 58, 62, 65] },
+      { root: 51, tones: [51, 55, 58, 62] },
+      { root: 53, tones: [53, 57, 60, 65] }
+    ];
+    var ARP = [0, 1, 2, 3, 2, 1];
+    var MEL = [[2, 74, 2], [4, 72, 2], [6, 70, 4], [10, 72, 2], [12, 74, 3], [15, 72, 1],
+               [16, 70, 2], [18, 69, 4], [22, 72, 2], [24, 77, 2], [26, 75, 2], [28, 74, 2],
+               [30, 75, 4], [34, 77, 2], [36, 74, 3], [39, 70, 3], [42, 72, 5]];
+    var MELMAP = {};
+    for (var mi = 0; mi < MEL.length; mi++) { MELMAP[MEL[mi][0]] = MEL[mi]; }
+
+    function schedBar() {
+      var bar = Math.floor(gstep / 6), t = nextT, b = BARS[bar % 8], i, tt;
+      var pn = [];
+      for (i = 0; i < b.tones.length; i++) { pn.push(b.tones[i] + 12); }
+      pad(t, pn, EIGHTH * 6);
+      bass(t, b.root - 12, EIGHTH * 1.9);
+      bass(t + EIGHTH * 3, b.root - 12, EIGHTH * 1.6);
+      for (i = 0; i < 6; i++) {
+        tt = t + i * EIGHTH;
+        piano(tt, b.tones[ARP[i]] + 12,
+              (i === 0 || i === 3) ? 0.080 : (i === 2 || i === 5 ? 0.050 : 0.038),
+              EIGHTH * (i === 0 ? 5 : 2.6));
+        var m = MELMAP[gstep + i];
+        if (m) { piano(tt + 0.012, m[1], 0.115, EIGHTH * m[2] * 0.95); }
+      }
+      gstep = (gstep + 6) % 48;
+      nextT += EIGHTH * 6;
+    }
+
+    function tick() {
+      if (!ac) return;
+      if (nextT < ac.currentTime - 0.5) { nextT = ac.currentTime + 0.15; }
+      var guard = 0;
+      while (nextT < ac.currentTime + 1.2 && guard++ < 8) { schedBar(); }
+    }
+
+    function startSynth() {
+      if (!ensureSynth()) return false;
+      if (ac.state === 'suspended') { try { ac.resume(); } catch (e) {} }
+      if (!playing) {
+        playing = true; gstep = 0; nextT = ac.currentTime + 0.15;
+        timer = setInterval(tick, 400);
+      }
+      master.gain.cancelScheduledValues(ac.currentTime);
+      master.gain.setTargetAtTime(muted ? 0.0001 : 0.8, ac.currentTime, 1.4);
+      return true;
+    }
+
+    /* ---------- C. 对外接口 ---------- */
+    probe();
+
+    return {
+      start: function () {
+        if (started) return;
+        started = true;
+        if (fileOk && el) { playFile(); }
+        else { startSynth(); pendingSwitch = true; }
+      },
+      hasStarted: function () { return started; },
+      toggle: function () {
+        muted = !muted;
+        if (el && fileOk) { fadeEl(muted ? 0 : VOL, 320); }
+        if (ac && playing) {
+          master.gain.cancelScheduledValues(ac.currentTime);
+          master.gain.setTargetAtTime(muted ? 0.0001 : 0.8, ac.currentTime, 0.15);
+        }
+        return muted;
+      },
+      isMuted: function () { return muted; },
+      restart: function () {
+        if (el && fileOk) { try { el.currentTime = 0; } catch (e) {} }
+        if (ac && playing) { gstep = 0; nextT = ac.currentTime + 0.12; }
+      },
+      using: function () { return fileOk ? 'file' : 'synth'; },
+      /* 是否「已启动、但实际没在响」——通常是首次手势没被浏览器认可，
+         play() / resume() 被自动播放策略拒了。留给下一次真实手势补救。 */
+      isStalled: function () {
+        if (!started || muted) return false;
+        if (fileOk && el) return !!el.paused;
+        return !!(ac && ac.state !== 'running');
+      },
+      kick: function () {
+        if (!started || muted) return;
+        if (fileOk && el) { if (el.paused) playFile(); }
+        else { startSynth(); }
+      }
+    };
+  })();
+
+  var musicBtn = document.getElementById('music');
+  var wasMutedByUser = false;
+  function syncMusicBtn() {
+    var m = Music.isMuted();
+    musicBtn.classList.toggle('mute', m);
+    musicBtn.setAttribute('aria-pressed', m ? 'false' : 'true');
+    musicBtn.setAttribute('aria-label', m ? '打开背景音乐' : '关闭背景音乐');
+  }
+  function musicStop(e) { if (e && e.stopPropagation) e.stopPropagation(); }
+  musicBtn.addEventListener('touchstart', musicStop, { passive: true });
+  musicBtn.addEventListener('mousedown', musicStop);
+  musicBtn.addEventListener('click', function (e) {
+    musicStop(e);
+    if (!Music.hasStarted()) { Music.start(); }
+    else if (Music.isStalled()) { Music.kick(); }   /* 被自动播放策略拦过 → 手势里补播 */
+    else { Music.toggle(); }
+    syncMusicBtn();
+  });
+  document.addEventListener('visibilitychange', function () {
+    if (!Music.hasStarted()) return;
+    if (document.hidden) {
+      wasMutedByUser = Music.isMuted();
+      if (!wasMutedByUser) { Music.toggle(); syncMusicBtn(); }
+    } else if (!wasMutedByUser) {
+      Music.toggle(); syncMusicBtn();
+    }
+  });
+
   function startShow() {
     if (state.started) return;
     state.started = true;
+    Music.start();
+    syncMusicBtn();
     app.classList.add('wiping');
     setTimeout(function () { brushWipe(); }, 320);
   }
@@ -1227,6 +1609,7 @@
     state.chapterT0 = performance.now();
     updateChrome();
     resetAmbient();
+    Music.restart();
     toast('重新放映，从第一幕开始。');
   });
 
@@ -1325,15 +1708,15 @@
   init();
 })();
 </script>
-<!-- 备案信息（工信部要求：首页底部展示备案号并链接工信部） -->
+
+<!-- 备案信息（工信部要求：底部展示备案号并链接工信部） -->
 <style>
   .icp-foot{position:fixed;left:0;right:0;bottom:0;z-index:90;text-align:center;
     padding:3px 0 max(4px,calc(env(safe-area-inset-bottom) - 20px));
     font:10px/1.5 -apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
-    color:rgba(255,255,255,.4);letter-spacing:.02em;text-shadow:0 1px 3px rgba(0,0,0,.55);
-    pointer-events:none;-webkit-text-size-adjust:100%}
-  .icp-foot a{color:inherit;text-decoration:none;pointer-events:auto}
-  .icp-foot a:active{color:rgba(255,255,255,.75)}
+    letter-spacing:.02em;text-shadow:0 1px 3px rgba(0,0,0,.55);pointer-events:none;-webkit-text-size-adjust:100%}
+  .icp-foot a{color:rgba(255,255,255,.42);text-decoration:none;pointer-events:auto}
+  .icp-foot a:active{color:rgba(255,255,255,.78)}
 </style>
 <div class="icp-foot"><a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">蜀ICP备2026032415号-2</a></div>
 </body>
