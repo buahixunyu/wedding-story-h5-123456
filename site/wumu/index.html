@@ -79,6 +79,18 @@
   .copy .scene,.copy .sub{opacity:0;transition:opacity .8s var(--ease) .25s}
   .chapter.active .copy .scene,.chapter.active .copy .sub{opacity:1}
 
+  /* 场次水印（日期 · 地点）与一页小故事 */
+  .copy .stamp{display:inline-flex;align-items:center;gap:8px;margin:16px 0 0;padding:5px 13px;border:1px solid rgba(255,240,205,.42);border-radius:999px;font-size:10.5px;letter-spacing:.2em;color:#ffe9bd;background:rgba(6,14,36,.34);white-space:nowrap}
+  .copy .story{margin:14px 0 0;max-width:330px;font-size:13px;line-height:2;letter-spacing:.04em;color:rgba(255,244,220,.9)}
+  .copy .stamp,.copy .story{opacity:0;transform:translateY(10px);transition:opacity .8s var(--ease) .45s,transform .8s var(--ease) .45s}
+  .chapter.active .copy .stamp,.chapter.active .copy .story{opacity:1;transform:translateY(0)}
+  .chapter.active .copy .story{transition-delay:.6s}
+  .copy .sub{margin:18px 0 0}
+  @media (max-height:640px){
+    .copy .story{font-size:12px;line-height:1.8;margin-top:10px}
+    .copy .stamp{margin-top:12px}
+  }
+
   .chapter-num{position:absolute;z-index:6;right:20px;top:44%;font-size:10px;letter-spacing:.2em;color:rgba(255,244,214,.72);writing-mode:vertical-rl;transform:translate3d(calc(var(--mx) * 26px),calc(var(--my) * 20px),0);transition:transform .6s var(--ease)}
 
   /* ---------- 环境层 ---------- */
@@ -236,6 +248,7 @@
   .opening-card .eyebrow{margin:0 0 20px;font-size:10px;letter-spacing:.28em;color:rgba(255,245,215,.8)}
   .opening-card h1{margin:0;font-family:var(--serif);font-weight:600;font-size:clamp(36px,11vw,62px);line-height:1.12;color:#fff4d2;letter-spacing:.01em;text-shadow:0 8px 30px rgba(4,16,44,.4)}
   .opening-card h1 em{font-style:normal;color:#ffdc9d}
+  .opening-date{margin:20px 0 0;font-size:11px;letter-spacing:.24em;color:rgba(255,240,214,.68);white-space:nowrap}
   .start{position:relative;margin-top:36px;min-width:170px;min-height:48px;padding:0 24px;border-radius:999px;color:#20365f;background:#ffe3a6;box-shadow:0 14px 36px rgba(6,18,48,.28);transition:transform .25s var(--ease),background .25s ease}
   .start:active{transform:scale(.96)}
   .opening-foot{display:block;margin-top:16px;font-size:10px;letter-spacing:.14em;color:rgba(255,247,220,.6)}
@@ -259,6 +272,7 @@
   .card .label{margin:0 0 12px;font-size:10px;letter-spacing:.26em;color:rgba(255,245,214,.7)}
   .card h2{margin:0;font-family:var(--serif);font-weight:600;font-size:clamp(26px,7.6vw,38px);line-height:1.2;color:#fff4d0}
   .card .names{margin:12px 0 0;font-size:13px;letter-spacing:.22em;color:rgba(255,246,222,.86)}
+  .card .days{margin:8px 0 0;font-size:10.5px;letter-spacing:.16em;color:rgba(255,225,161,.85);white-space:nowrap}
   .card .lead{margin:12px 0 16px;font-size:12.5px;line-height:1.75;color:rgba(255,247,224,.82)}
   .facts{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:14px}
   .fact{padding:11px 12px;border-radius:14px;background:rgba(255,247,218,.1)}
@@ -338,6 +352,8 @@
         <div class="copy">
           <p class="scene">SCENE 01 · 开场</p>
           <h1><span class="line"><span>我们先学会了，</span></span><span class="line"><span><em>一起抬头看。</em></span></span></h1>
+          <p class="stamp">2024.03.10 · 熊猫谷</p>
+          <p class="story">熊猫谷的竹子比人多。它啃它的竹子，我们看我们的它，谁也不赶时间。</p>
           <p class="sub">THE DAY WE LOOKED UP TOGETHER</p>
         </div>
         <div class="chapter-num">01 / 05</div>
@@ -358,6 +374,8 @@
         <div class="copy">
           <p class="scene">SCENE 02 · 出发</p>
           <h2><span class="line"><span>想去的地方，</span></span><span class="line"><span><em>都写在同一张票上。</em></span></span></h2>
+          <p class="stamp">2026.04.14 · 环球影城</p>
+          <p class="story">从开园逛到闭园，把想玩的项目一个个打了勾。回去的路上，已经开始计划下一次。</p>
           <p class="sub">ONE TICKET, TWO OF US</p>
         </div>
         <div class="chapter-num">02 / 05</div>
@@ -378,6 +396,8 @@
         <div class="copy">
           <p class="scene">SCENE 03 · 日常</p>
           <h2><span class="line"><span>最好的镜头，</span></span><span class="line"><span><em>总在家里。</em></span></span></h2>
+          <p class="stamp">许多个傍晚 · 家</p>
+          <p class="story">一个西瓜，两把勺子，一部看了很多遍的老片子。这样的日子最多，也最舍不得。</p>
           <p class="sub">HOME IS OUR FAVOURITE SET</p>
         </div>
         <div class="chapter-num">03 / 05</div>
@@ -398,6 +418,8 @@
         <div class="copy">
           <p class="scene">SCENE 04 · 并肩</p>
           <h2><span class="line"><span>光落在银幕上，</span></span><span class="line"><span><em>也落在我们身上。</em></span></span></h2>
+          <p class="stamp">许多个夜晚 · 电影院</p>
+          <p class="story">散场灯亮了，总要再坐一会儿。从电影院走回家的路，每次都嫌短。</p>
           <p class="sub">SITTING NEXT TO YOU</p>
         </div>
         <div class="chapter-num">04 / 05</div>
@@ -418,6 +440,8 @@
         <div class="copy">
           <p class="scene">SCENE 05 · 夜色</p>
           <h2><span class="line"><span>把今天，</span></span><span class="line"><span><em>走到灯火通明。</em></span></span></h2>
+          <p class="stamp">许多个周末 · 夜市</p>
+          <p class="story">从街头吃到街尾，手里拎着，嘴里嚼着。灯还亮着，就不想回家。</p>
           <p class="sub">ALL THE WAY INTO THE NIGHT</p>
         </div>
         <div class="chapter-num">05 / 05</div>
@@ -460,6 +484,7 @@
       <div class="opening-card">
         <p class="eyebrow">A LITTLE STORY · 05 SCENES</p>
         <h1><span class="nl">把日常，</span><span class="nl"><em>拍成一部电影。</em></span></h1>
+        <p class="opening-date">2023.10.06，故事开始。</p>
         <button class="start" id="start" type="button">开始放映 →</button>
         <span class="opening-foot">竖屏观看效果更好</span>
         <span class="opening-swipe" aria-hidden="true"><i></i>上滑开始</span>
@@ -473,7 +498,8 @@
         <p class="label">THE LAST SCENE · 邀请</p>
         <h2><span class="nl">下一幕，</span><span class="nl">想请你到场。</span></h2>
         <p class="names" id="names">新郎 &amp; 新娘</p>
-        <p class="lead"><span class="nl">五个日常片段，拼成我们的一辈子。</span><span class="nl">剩下的那一幕，希望你也在。</span></p>
+        <p class="days" id="daysTogether"></p>
+        <p class="lead"><span class="nl">五个日常片段，是我们走过的一小段路。</span><span class="nl">往后的路，想请你一起走下去。</span></p>
 
         <div class="facts">
           <div class="fact"><small>DATE</small><strong id="factDate">2026.10.18</strong></div>
@@ -508,6 +534,7 @@
     bride: '新娘',
     dateText: '2026.10.18',
     dateISO: '20261018',
+    together: '2023.10.06',
     timeText: '17:30 签到',
     venue: '湖畔礼堂 · 三楼宴会厅',
     address: '示例市示例区湖畔路 88 号',
@@ -1680,6 +1707,19 @@
     document.getElementById('timeline').innerHTML = CONFIG.timeline.map(function (it) {
       return '<li><span class="t">' + it.time + '</span><span class="d"><b>' + it.title + '</b><span>' + it.desc + '</span></span></li>';
     }).join('');
+
+    var daysEl = document.getElementById('daysTogether');
+    function parseDay(s) {
+      var m = /^(\d{4})\.(\d{1,2})\.(\d{1,2})$/.exec(s || '');
+      return m ? new Date(+m[1], +m[2] - 1, +m[3]) : null;
+    }
+    var from = parseDay(CONFIG.together), to = parseDay(CONFIG.dateText);
+    if (daysEl && from && to && to > from) {
+      var days = Math.round((to - from) / 86400000);
+      daysEl.textContent = CONFIG.together + ' → ' + CONFIG.dateText + ' · 在一起的第 ' + days + ' 天';
+    } else if (daysEl) {
+      daysEl.style.display = 'none';
+    }
   }
 
   function init() {
