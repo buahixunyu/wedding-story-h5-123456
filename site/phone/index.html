@@ -1,0 +1,1840 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<title>小李可可的手机 · 婚礼邀请</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%;overflow:hidden}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    background:#0a0a0c;color:#fff;user-select:none;-webkit-user-select:none;
+  }
+  button{border:none;background:none;color:inherit;font:inherit;cursor:pointer}
+
+  /* ---------- 机身 ---------- */
+  .stage{position:fixed;inset:0;display:flex;justify-content:center;align-items:stretch;background:#0a0a0c}
+  .device-shell{position:relative;width:100%;height:100%}
+  .phone{position:relative;width:100%;height:100%;overflow:hidden;background:#000;isolation:isolate;touch-action:pan-y;overscroll-behavior:none}
+  .device-key{display:none;pointer-events:none}
+  .dynamic-island{position:absolute;z-index:80;top:calc(env(safe-area-inset-top) + 12px);left:50%;transform:translateX(-50%);width:118px;height:34px;background:#000;border-radius:20px;pointer-events:none}
+  .dynamic-island::before{content:"";position:absolute;right:11px;top:10px;width:14px;height:14px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#20344b 0%,#0b1422 28%,#030407 56%);box-shadow:inset 0 0 0 2px #101114}
+  .dynamic-island::after{content:"";position:absolute;left:22px;top:16px;width:42px;height:3px;border-radius:2px;background:#0b0b0c}
+  @media (min-width:600px){
+    .stage{align-items:center}
+    .device-shell{
+      flex:none;width:410px;height:864px;padding:10px;border-radius:58px;
+      transform:scale(var(--device-scale,.75));
+      background:linear-gradient(110deg,#737579 0%,#343639 8%,#171819 48%,#55575a 92%,#888a8d);
+      border:1px solid #77797c;
+      box-shadow:inset 0 0 0 2px #28292b,inset 0 0 0 3px #595b5e,0 24px 54px rgba(0,0,0,.55);
+    }
+    .device-shell::before{content:"";position:absolute;inset:4px;border:1px solid #0c0c0d;border-radius:54px;pointer-events:none}
+    .phone{border-radius:47px;box-shadow:0 0 0 5px #050505,0 0 0 6px #1d1e20}
+    .device-key{display:block;position:absolute;width:4px;border:1px solid #484a4d;background:linear-gradient(90deg,#1d1e20,#74767a,#303234);border-radius:2px}
+    .device-key.action{left:-4px;top:108px;height:24px}
+    .device-key.volume-up{left:-4px;top:160px;height:54px}
+    .device-key.volume-down{left:-4px;top:228px;height:54px}
+    .device-key.power{right:-4px;top:184px;height:86px}
+    .dynamic-island{top:22px}
+  }
+
+  /* ---------- 壁纸 ---------- */
+  .wallpaper{
+    position:absolute;inset:-40px;z-index:0;
+    background:url("../wumu/assets/night-market.webp") center/cover no-repeat #101226;
+    filter:blur(28px) brightness(.62) saturate(1.15);
+    transform:scale(1.08);
+  }
+  /* assets/wallpaper.webp 存在时：高清原图直出，不模糊 */
+  .wallpaper.crisp{inset:0;background-image:url("assets/wallpaper.webp");filter:none;transform:none}
+  .wallpaper.crisp::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.26),transparent 28%,transparent 74%,rgba(0,0,0,.3))}
+
+  /* ---------- 桌面小组件：大数字时钟（2×4） ---------- */
+  .widget{
+    grid-column:span 4;border-radius:26px;position:relative;overflow:hidden;
+    /* 关键：填充要够透、少加色，让背后壁纸"原样模糊"透出来，才是"玻璃"而不是"色板" */
+    background:linear-gradient(160deg,rgba(255,255,255,.1),rgba(255,255,255,.02) 45%,rgba(10,14,30,.12));
+    backdrop-filter:blur(30px) saturate(1.15);
+    -webkit-backdrop-filter:blur(30px) saturate(1.15);
+    border:1px solid rgba(255,255,255,.34);
+    box-shadow:0 14px 34px rgba(0,0,0,.2),
+      inset 0 1px 0 rgba(255,255,255,.4),inset 0 -1px 0 rgba(0,0,0,.1);
+    aspect-ratio:2.42;align-self:start;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:11px;
+    padding:16px 18px;
+  }
+  /* 不支持毛玻璃的浏览器（老 WebView / 部分微信内核）用半透明深色兜底，保证文字可读 */
+  @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+    .widget{background:linear-gradient(160deg,rgba(30,42,70,.5),rgba(14,20,40,.55))}
+  }
+  /* 顶部斜向高光 + 斜掠微光，让玻璃更通透 */
+  .widget::before{content:"";position:absolute;inset:0 0 55% 0;border-radius:inherit;pointer-events:none;
+    background:linear-gradient(180deg,rgba(255,255,255,.08),transparent 80%)}
+  .widget::after{content:"";position:absolute;top:-40%;bottom:-40%;left:-70%;width:46%;pointer-events:none;
+    background:linear-gradient(105deg,transparent,rgba(255,255,255,.16) 50%,transparent);
+    transform:skewX(-18deg);animation:wdSheen 7s ease-in-out infinite}
+  @keyframes wdSheen{0%,62%{left:-70%}88%,100%{left:130%}}
+  .wd-time{display:flex;align-items:baseline;font-size:60px;font-weight:250;letter-spacing:1px;line-height:1;
+    font-variant-numeric:tabular-nums;
+    filter:drop-shadow(0 3px 12px rgba(0,0,0,.3))}
+  .wd-time span{
+    background:linear-gradient(180deg,#fff 25%,rgba(255,255,255,.72));
+    -webkit-background-clip:text;background-clip:text;
+    -webkit-text-fill-color:transparent;color:transparent}
+  .wd-colon{font-weight:200;margin:0 1px;transform:translateY(-1px);animation:wdColon 1s steps(1) infinite}
+  @keyframes wdColon{0%,49%{opacity:1}50%,100%{opacity:.4}}
+  .wd-right{width:100%;display:flex;gap:10px;justify-content:space-between;align-items:center;padding:0 2px}
+  .wd-date{font-size:11.5px;font-weight:500;letter-spacing:.5px;color:rgba(255,255,255,.95);
+    text-shadow:0 1px 4px rgba(0,0,0,.3);white-space:nowrap}
+  .wd-count{
+    display:inline-flex;align-items:center;gap:5px;white-space:nowrap;
+    font-size:10.5px;font-weight:600;letter-spacing:.3px;color:#fff;
+    padding:4.5px 11px;border-radius:999px;
+    background:linear-gradient(135deg,#ff93a8,#ff5f7e 55%,#ef4a68);
+    box-shadow:0 3px 12px rgba(239,74,104,.5),inset 0 1px 0 rgba(255,255,255,.4);
+  }
+  .wd-count::before{content:"";width:4px;height:4px;border-radius:50%;background:rgba(255,255,255,.9);
+    box-shadow:0 0 6px rgba(255,255,255,.9)}
+  @media (max-width:350px){.widget{gap:8px;padding:12px}.wd-time{font-size:50px}.wd-date{font-size:10px}.wd-count{font-size:9.5px;padding:3.5px 9px}}
+
+  /* ---------- 开机 ---------- */
+  .boot{
+    position:absolute;inset:0;z-index:60;
+    background:radial-gradient(120% 85% at 50% 36%,#4a0d12 0%,#260509 42%,#0c0103 74%,#000 100%);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:64px;
+    transition:opacity .6s ease;
+  }
+  /* 苹果后面一团呼吸的红色暖光 */
+  .boot::before{content:"";position:absolute;left:50%;top:44%;width:230px;height:230px;
+    transform:translate(-50%,-50%);border-radius:50%;pointer-events:none;
+    background:radial-gradient(closest-side,rgba(255,110,80,.3),rgba(200,30,40,.12) 55%,transparent 75%);
+    animation:bootHalo 2.6s ease-in-out .2s infinite}
+  @keyframes bootHalo{0%,100%{opacity:.65;transform:translate(-50%,-50%) scale(1)}
+    50%{opacity:1;transform:translate(-50%,-50%) scale(1.08)}}
+  .boot.gone{opacity:0;pointer-events:none}
+  .boot-logo{
+    width:64px;height:76px;flex:none;position:relative;
+    opacity:0;animation:bootLogo 1s ease .2s forwards;
+    filter:drop-shadow(0 0 14px rgba(255,196,110,.55)) drop-shadow(0 0 40px rgba(224,64,56,.4));
+  }
+  .boot-logo svg{display:block;width:100%;height:100%}
+  @keyframes bootLogo{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
+  .boot-bar{width:118px;height:5px;border-radius:3px;background:rgba(255,170,120,.16);overflow:hidden;
+    position:relative;opacity:0;animation:bootBarIn .3s ease 1.1s forwards}
+  .boot-bar i{display:block;height:100%;width:0;border-radius:3px;
+    background:linear-gradient(90deg,#f7d992,#eeb04e 45%,#ff5a48);
+    box-shadow:0 0 10px rgba(255,150,90,.6);
+    animation:bootBarFill 1.15s cubic-bezier(.3,.7,.4,1) 1.15s forwards}
+  @keyframes bootBarIn{to{opacity:1}}
+  @keyframes bootBarFill{to{width:100%}}
+
+  /* ---------- 锁屏 ---------- */
+  .lock{
+    position:absolute;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;
+    padding-top:max(72px,calc(env(safe-area-inset-top) + 56px));
+    transition:transform .55s cubic-bezier(.32,.72,.35,1),opacity .55s ease;
+    cursor:grab;
+  }
+  .lock{touch-action:none}
+  .lock.unlock{transform:translateY(-104%);opacity:.35;pointer-events:none}
+  .lock-date{font-size:20px;font-weight:500;letter-spacing:.04em;color:rgba(255,255,255,.92)}
+  .lock-time{font-size:82px;font-weight:250;letter-spacing:-.01em;line-height:1.05;margin-top:2px;text-shadow:0 4px 30px rgba(0,0,0,.25)}
+  .lock-xiao{margin-top:10px;font-size:13px;letter-spacing:.28em;color:rgba(255,255,255,.72)}
+  .lock-hint{position:absolute;bottom:max(44px,calc(env(safe-area-inset-bottom) + 34px));font-size:12px;letter-spacing:.12em;color:rgba(255,255,255,.85);animation:hintFloat 1.8s ease-in-out infinite}
+  @keyframes hintFloat{0%,100%{transform:translateY(0);opacity:.6}50%{transform:translateY(-6px);opacity:1}}
+
+  /* ---------- Home 指示条 ---------- */
+  .home-indicator{
+    position:absolute;left:50%;bottom:max(8px,env(safe-area-inset-bottom));transform:translateX(-50%);
+    width:134px;height:5px;border-radius:3px;background:rgba(255,255,255,.85);z-index:46;
+  }
+  .app-homebar{
+    position:absolute;left:0;right:0;bottom:0;height:40px;z-index:47;touch-action:none;
+    display:grid;place-items:end center;cursor:pointer;pointer-events:auto;
+    padding-bottom:max(8px,env(safe-area-inset-bottom));
+  }
+  .app-homebar i{display:block;width:134px;height:5px;border-radius:3px;background:rgba(255,255,255,.9)}
+  .app-homebar.dark i{background:rgba(0,0,0,.82)}
+  .app-homebar .mobile-home-label{display:none}
+  /* 底部留白作为手势起滑区，无可见横条，不覆盖应用控件。 */
+  .return-gesture-bottom{
+    position:absolute;left:0;right:0;bottom:0;z-index:46;
+    height:max(40px,calc(env(safe-area-inset-bottom) + 56px));
+    touch-action:none;pointer-events:none;
+  }
+  .phone.app-open:not(.gestures-disabled) .return-gesture-bottom{pointer-events:auto}
+  .return-gesture-feedback{
+    position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom) + 84px);z-index:65;
+    padding:9px 16px;border-radius:20px;background:rgba(24,24,28,.86);color:#fff;
+    font-size:12px;white-space:nowrap;pointer-events:none;opacity:0;
+    transform:translate(-50%,8px);transition:opacity .15s,transform .15s;
+  }
+  .return-gesture-feedback.on{opacity:1;transform:translate(-50%,0)}
+  .return-gesture-feedback.ready{background:rgba(27,100,62,.92)}
+  .appwin .app-panel.parked{display:none}
+  .app-panel .statusbar{position:absolute;top:0;left:0;right:0;z-index:9;padding:max(10px,env(safe-area-inset-top)) 26px 0;font-size:13px}
+  .app-panel .statusbar.dark{color:#1c1c1e}
+  .app-panel .statusbar.dark svg *{fill:#1c1c1e}
+  .panel-music .app-head{padding-top:max(40px,calc(env(safe-area-inset-top) + 26px))}
+
+  /* ---------- 状态栏 ---------- */
+  .statusbar{
+    position:relative;z-index:5;display:flex;justify-content:space-between;align-items:center;
+    padding:max(14px,env(safe-area-inset-top)) 30px 0;font-size:14px;font-weight:600;letter-spacing:.01em;
+  }
+  .statusbar .sb-icons{display:inline-flex;align-items:center;gap:6px}
+  .statusbar svg{display:block}
+
+  /* ---------- 桌面 ---------- */
+  .home{
+    position:absolute;inset:0;z-index:40;display:flex;flex-direction:column;
+    opacity:0;transform:scale(1.12);transition:opacity .5s ease,transform .55s cubic-bezier(.32,.72,.35,1);
+    pointer-events:none;
+  }
+  .home.on{opacity:1;transform:scale(1);pointer-events:auto}
+  .apps{
+    flex:1;display:grid;grid-template-columns:repeat(4,1fr);gap:26px 18px;align-content:start;
+    padding:34px 26px 0;
+  }
+  .icon{display:flex;flex-direction:column;align-items:center;gap:6px;transition:transform .18s cubic-bezier(.3,1.4,.5,1)}
+  .icon:active{transform:scale(.86)}
+  .icon .glyph{
+    width:62px;height:62px;border-radius:22.5%;display:grid;place-items:center;position:relative;overflow:hidden;
+    box-shadow:0 6px 16px rgba(0,0,0,.28);
+  }
+  .icon .label{font-size:11px;letter-spacing:.02em;color:#fff;text-shadow:0 1px 6px rgba(0,0,0,.5);white-space:nowrap}
+
+  /* 日历/计算器/音乐/电话/短信/浏览器/抖音：均使用 iOS 27 官方图标素材 */
+  .icon .glyph{padding:0}
+  .glyph img{width:100%;height:100%;display:block;object-fit:cover}
+
+  .home .beian{
+    position:absolute;left:0;right:0;bottom:max(16px,calc(env(safe-area-inset-bottom) + 8px));
+    text-align:center;font-size:9px;letter-spacing:.04em;
+  }
+  .home .beian a{color:rgba(255,255,255,.42);text-decoration:none}
+
+  /* ---------- Dock（电话/短信/浏览器） ---------- */
+  .dock{
+    position:absolute;left:14px;right:14px;bottom:max(38px,calc(env(safe-area-inset-bottom) + 30px));z-index:5;
+    display:flex;justify-content:space-evenly;align-items:center;
+    padding:12px 16px;border-radius:30px;
+    background:rgba(255,255,255,.16);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  }
+  .dock .icon .label{display:none}
+
+  /* ---------- 电话 ---------- */
+  .app-panel.panel-phone{background:#f6f5f7;color:#1c1c1e;display:flex;flex-direction:column;padding-bottom:max(48px,calc(env(safe-area-inset-bottom) + 42px))}
+  .ph-display{padding:max(56px,calc(env(safe-area-inset-top) + 42px)) 20px 8px;text-align:center;font-size:34px;font-weight:300;letter-spacing:.05em;min-height:110px}
+  .ph-sub{text-align:center;font-size:12px;color:#8e8e93;margin-bottom:8px}
+  .ph-keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;padding:6px 34px 0}
+  .ph-key{height:68px;border-radius:50%;background:#e6e6eb;font-size:27px;font-weight:400;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:background .12s}
+  .ph-key:active{background:#d1d1d6}
+  .ph-key small{font-size:9px;letter-spacing:.18em;color:#8e8e93;margin-top:-2px}
+  .ph-key.ghost{background:transparent}
+  .ph-call{width:68px;height:68px;border-radius:50%;background:#34c759;display:grid;place-items:center;margin:14px auto 0;transition:transform .15s}
+  .ph-call:active{transform:scale(.92)}
+
+  /* ---------- 短信 ---------- */
+  .app-panel.panel-sms{background:#fff;color:#1c1c1e;display:flex;flex-direction:column}
+  .sms-head{padding:max(42px,calc(env(safe-area-inset-top) + 28px)) 16px 10px;text-align:center;border-bottom:1px solid #e4e4e8}
+  .sms-head .sms-ava{width:44px;height:44px;border-radius:50%;background:#c8102e;color:#fff;display:grid;place-items:center;margin:0 auto 5px;font-family:Georgia,serif;font-size:19px}
+  .sms-head .sms-name{font-size:12px;color:#55555b}
+  .sms-body{flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:9px;scrollbar-width:none;touch-action:pan-y}
+  .sms-body::-webkit-scrollbar{display:none}
+  .sms-time{text-align:center;font-size:11px;color:#8e8e93;margin:2px 0 6px}
+  .sms-bubble{max-width:80%;padding:10px 14px;border-radius:19px;font-size:15px;line-height:1.55}
+  .sms-bubble.in{align-self:flex-start;background:#e9e9eb;border-bottom-left-radius:5px}
+  .sms-bubble.out{align-self:flex-end;background:#34c759;color:#fff;border-bottom-right-radius:5px}
+  .sms-input{display:flex;gap:8px;align-items:center;padding:9px 12px max(46px,calc(env(safe-area-inset-bottom) + 40px));border-top:1px solid #e4e4e8}
+  .sms-input input{flex:1;height:36px;border:1px solid #d5d5da;border-radius:18px;padding:0 14px;font-size:14px;outline:none}
+  .sms-input button{width:34px;height:34px;border-radius:50%;background:#34c759;color:#fff;display:grid;place-items:center;font-size:15px}
+
+  /* ---------- 浏览器（Safari） ---------- */
+  .app-panel.panel-safari{background:#f6f6f8;display:flex;flex-direction:column}
+  .sf-bar{display:flex;align-items:center;gap:8px;padding:max(42px,calc(env(safe-area-inset-top) + 28px)) 14px 9px;background:rgba(246,246,248,.95)}
+  .sf-url{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;background:#e4e4e9;border-radius:11px;padding:8px 12px;font-size:13px;color:#3a3a3c}
+  .sf-frame{flex:1;width:100%;border:0;background:#0a1330}
+  .sf-tools{display:flex;justify-content:space-around;align-items:center;padding:10px 0 max(22px,calc(env(safe-area-inset-bottom) + 14px));background:rgba(246,246,248,.95);color:#007aff}
+  .sf-tools svg{display:block;opacity:.85}
+
+  /* ---------- App 窗口 ---------- */
+  .appwin{
+    position:absolute;inset:0;z-index:45;pointer-events:none;
+  }
+  .app-panel{
+    position:absolute;inset:0;opacity:0;pointer-events:none;
+    transform:scale(.28);border-radius:46px;overflow:hidden;
+    transition:transform .42s cubic-bezier(.32,.72,.3,1),opacity .3s ease,border-radius .42s ease;
+    background:#000;
+  }
+  .app-panel.show{opacity:1;pointer-events:auto;transform:scale(1);border-radius:0}
+  .app-head{
+    position:relative;z-index:8;display:flex;align-items:center;justify-content:center;
+    padding:max(14px,env(safe-area-inset-top)) 16px 12px;font-size:16px;font-weight:600;
+  }
+  .app-head .sub{position:absolute;right:16px;top:0;bottom:0;display:flex;align-items:center;font-size:13px;font-weight:400}
+
+  /* ---------- 日历：原生月视图 ---------- */
+  .app-panel.panel-calendar{
+    --cal-red:#ff3b30;--cal-ink:#1c1c1e;--cal-line:#e9e9ec;
+    background:#fff;color:#1c1c1e;display:flex;flex-direction:column;padding:0;
+  }
+  .app-panel.panel-calendar.show{z-index:48}
+  .panel-calendar [hidden]{display:none !important}
+  .panel-calendar button:focus-visible{outline:2px solid var(--cal-ink);outline-offset:-2px}
+  .cal-header{flex:none;padding:calc(env(safe-area-inset-top) + 8px) 18px 0;background:#fff}
+  .cal-topline{display:flex;align-items:center;justify-content:space-between;min-height:44px}
+  .cal-year-button{display:flex;align-items:center;gap:4px;min-height:44px;margin-left:-8px;padding:0 8px;color:var(--cal-ink);font-size:19px;letter-spacing:-.03em}
+  .cal-year-button svg{width:13px;height:21px;flex:none}
+  .cal-view-switch{display:flex;align-items:center;gap:4px}
+  .cal-view-switch button{display:grid;place-items:center;width:38px;height:34px;border-radius:9px;color:#8e8e93}
+  .cal-view-switch button.active{background:#f1f1f3;color:#1c1c1e}
+  .cal-view-switch svg{width:21px;height:21px}
+  .cal-month-heading{display:flex;align-items:center;justify-content:space-between;padding:5px 0 16px}
+  .cal-month-heading h1{font-size:36px;font-weight:700;line-height:1.15;letter-spacing:-.04em}
+  .cal-month-nav{display:flex;gap:8px;align-items:center}
+  .cal-month-nav button{display:grid;place-items:center;width:36px;height:36px;color:var(--cal-ink);border-radius:50%}
+  .cal-month-nav button:active,.cal-year-button:active{background:#f5f5f7}
+  .cal-month-nav svg{width:12px;height:20px}
+  .cal-week{flex:none;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));padding:0 12px 9px;font-size:11px;font-weight:500;color:#636366;text-align:center}
+  .cal-week span:first-child,.cal-week span:last-child{color:#a0a0a5}
+  .cal-scroll{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;scrollbar-width:none}
+  .cal-scroll::-webkit-scrollbar{display:none}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));grid-template-rows:repeat(var(--cal-rows,5),minmax(88px,1fr));height:100%;min-height:calc(var(--cal-rows,5) * 88px);padding:0 12px}
+  .cal-day{position:relative;min-width:0;display:flex;flex-direction:column;align-items:stretch;gap:5px;padding:7px 2px;border-top:1px solid var(--cal-line);text-align:left}
+  .cal-date{display:grid;place-items:center;align-self:center;width:35px;height:35px;flex:none;border-radius:50%;font-size:22px;font-weight:400;line-height:1;font-variant-numeric:tabular-nums}
+  .cal-day.weekend{color:#96969b}
+  .cal-day.dim{color:#c7c7cc}
+  .cal-day.selected .cal-date{background:#ededf0;color:#1c1c1e}
+  .cal-day.today .cal-date{background:var(--cal-red);color:#fff;font-weight:600}
+  .cal-day:active .cal-date{box-shadow:0 0 0 3px rgba(0,0,0,.035)}
+  .cal-event{display:block;min-width:0;padding:4px 3px;border-left:2px solid var(--cal-red);border-radius:3px;background:#ffefee;color:#3a3a3c;font-size:10px;font-weight:500;line-height:1.35;overflow:hidden}
+  .cal-event-title{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .cal-event-time{display:block;margin-top:2px;font-size:9px;opacity:.75;font-variant-numeric:tabular-nums}
+  .cal-toolbar{flex:none;position:relative;display:flex;align-items:center;justify-content:space-between;min-height:82px;padding:10px 20px max(26px,calc(env(safe-area-inset-bottom) + 18px));border-top:1px solid var(--cal-line);background:rgba(255,255,255,.96)}
+  .cal-toolbar button{display:flex;align-items:center;gap:7px;min-height:44px;padding:0 4px;color:var(--cal-ink);font-size:17px}
+  .cal-toolbar svg{width:18px;height:18px}
+  .cal-toolbar button:active{opacity:.55}
+  .cal-agenda{padding:8px 20px 28px}
+  .cal-agenda-label{padding:12px 0;color:#8e8e93;font-size:12px;font-weight:500;letter-spacing:.02em}
+  .cal-agenda-date{padding:15px 0 12px;border-bottom:1px solid var(--cal-line);font-size:19px;font-weight:600}
+  .cal-agenda-date span{margin-left:8px;color:#8e8e93;font-size:13px;font-weight:400}
+  .cal-agenda-event{display:flex;align-items:center;gap:14px;width:100%;padding:20px 0;border-bottom:1px solid var(--cal-line);text-align:left}
+  .cal-agenda-time{align-self:flex-start;flex:none;padding-top:2px;color:#636366;font-size:13px;font-variant-numeric:tabular-nums}
+  .cal-agenda-info{flex:1;min-width:0;padding:0 12px;border-left:3px solid var(--cal-red)}
+  .cal-agenda-info strong{display:block;color:#1c1c1e;font-size:16px;font-weight:600;line-height:1.45}
+  .cal-agenda-info small{display:block;margin-top:5px;color:#8e8e93;font-size:12px;line-height:1.5}
+  .cal-agenda-event > svg{flex:none;width:10px;height:16px;color:#c7c7cc}
+  .cal-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:280px;padding:28px;text-align:center}
+  .cal-empty svg{width:42px;height:42px;margin-bottom:14px;color:#c7c7cc}
+  .cal-empty strong{font-size:17px;font-weight:600}
+  .cal-empty p{margin-top:7px;color:#8e8e93;font-size:13px;line-height:1.6}
+  .cal-year-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px 15px;padding:12px 18px 28px}
+  .cal-mini-month{min-width:0;text-align:left;border-radius:8px}
+  .cal-mini-month h2{margin-bottom:8px;color:var(--cal-ink);font-size:19px;font-weight:600;line-height:1.2}
+  .cal-mini-dates{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px 0;min-height:98px;font-size:9px;text-align:center;font-variant-numeric:tabular-nums}
+  .cal-mini-dates span{display:grid;place-items:center;width:14px;height:14px;justify-self:center;border-radius:50%;line-height:1}
+  .cal-mini-dates .weekend{color:#a0a0a5}
+  .cal-mini-dates .today{background:var(--cal-red);color:#fff}
+  .cal-mini-dates .has-event:not(.today){color:var(--cal-ink);font-weight:700}
+  .cal-detail-overlay{position:absolute;inset:0;z-index:20;display:flex;align-items:flex-end}
+  .cal-backdrop{position:absolute;inset:0;width:100%;height:100%;background:rgba(0,0,0,.22)}
+  .cal-sheet{position:relative;display:flex;flex-direction:column;width:100%;max-height:calc(100% - 64px);border-radius:22px 22px 0 0;background:#fff;overflow:hidden;animation:calSheetIn .24s cubic-bezier(.2,.7,.3,1)}
+  .cal-sheet::before{content:"";display:block;flex:none;width:34px;height:5px;margin:8px auto 3px;border-radius:3px;background:#d4d4d8}
+  .cal-sheet-head{display:flex;align-items:center;justify-content:space-between;padding:4px 20px 12px;border-bottom:1px solid var(--cal-line)}
+  .cal-sheet-head h2{font-size:16px;font-weight:600}
+  .cal-sheet-head button{min-height:40px;padding:0 2px;color:var(--cal-ink);font-size:16px;font-weight:600}
+  .cal-sheet-body{min-height:0;overflow-y:auto;overscroll-behavior:contain;touch-action:pan-y;padding:24px 22px max(30px,calc(env(safe-area-inset-bottom) + 22px))}
+  .cal-detail-title{font-size:27px;font-weight:700;line-height:1.3;letter-spacing:-.025em;overflow-wrap:anywhere}
+  .cal-detail-date{margin:9px 0 23px;color:#8e8e93;font-size:14px;line-height:1.5}
+  .cal-detail-row{display:flex;gap:16px;padding:15px 0;border-top:1px solid var(--cal-line);font-size:14px;line-height:1.6}
+  .cal-detail-row > span{flex:none;width:40px;color:#8e8e93}
+  .cal-detail-row > div{flex:1;min-width:0;overflow-wrap:anywhere}
+  .cal-detail-row small{display:block;margin-top:3px;color:#8e8e93;font-size:12px}
+  .cal-calendar-dot{display:inline-block;width:10px;height:10px;margin-right:8px;border-radius:50%;background:var(--cal-red)}
+  .cal-detail-action{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:52px;border-top:1px solid var(--cal-line);color:var(--cal-ink);text-align:left;font-size:16px}
+  .cal-detail-action svg{width:10px;height:16px;color:#c7c7cc}
+  @keyframes calSheetIn{from{transform:translateY(35px);opacity:.5}to{transform:translateY(0);opacity:1}}
+  @media (min-width:600px){.cal-header{padding-top:60px}}
+  @media (max-width:350px){.cal-header{padding-left:14px;padding-right:14px}.cal-month-heading h1{font-size:32px}.cal-grid,.cal-week{padding-left:7px;padding-right:7px}.cal-date{width:31px;height:31px;font-size:20px}.cal-year-grid{gap:20px 8px;padding-left:12px;padding-right:12px}.cal-mini-dates{font-size:8px}.cal-mini-dates span{width:12px;height:12px}.cal-event{font-size:9px}}
+
+  /* ---------- 计算器 ---------- */
+  .panel-calc{background:#000;display:flex;flex-direction:column;justify-content:flex-end;padding:0 18px max(48px,calc(env(safe-area-inset-bottom) + 42px))}
+  .calc-display{
+    min-height:120px;display:flex;align-items:flex-end;justify-content:flex-end;
+    font-size:84px;font-weight:300;padding:0 8px 14px;overflow:hidden;white-space:nowrap;letter-spacing:-.02em;
+  }
+  .calc-display.small{font-size:40px}
+  .calc-display.xsmall{font-size:26px;font-weight:400}
+  .calc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  .calc-grid button{
+    height:74px;border-radius:50%;font-size:30px;font-weight:400;background:#333;color:#fff;
+    transition:filter .1s;
+  }
+  .calc-grid button:active{filter:brightness(1.5)}
+  .calc-grid button.fn{background:#a5a5a5;color:#000}
+  .calc-grid button.op{background:#ff9f0a;color:#fff;font-size:34px}
+  .calc-grid button.op.on{background:#fff;color:#ff9f0a}
+  .calc-grid button.zero{grid-column:span 2;border-radius:40px;text-align:left;padding-left:27px}
+
+  /* ---------- 音乐 ---------- */
+  .panel-music{background:linear-gradient(180deg,#2c2c2e,#121214);display:flex;flex-direction:column}
+  .panel-music .app-head{color:rgba(255,255,255,.6);font-size:12px;font-weight:500;letter-spacing:.08em}
+  .music-body{flex:1;display:flex;flex-direction:column;align-items:center;padding:2px 34px 0;min-height:0}
+  .music-cover{
+    width:min(64%,240px);aspect-ratio:1;border-radius:14px;overflow:hidden;flex:none;
+    box-shadow:0 18px 46px rgba(0,0,0,.55);transition:transform .4s cubic-bezier(.3,1.3,.4,1);
+  }
+  .music-cover img{width:100%;height:100%;object-fit:cover;display:block}
+  .panel-music.playing .music-cover{transform:scale(1.03)}
+  .music-title{margin-top:22px;font-size:19px;font-weight:600;text-align:center}
+  .music-artist{margin-top:4px;font-size:15px;color:#e8324a}
+  .music-progress{width:100%;margin-top:20px;display:flex;align-items:center;gap:8px;font-size:10.5px;color:rgba(255,255,255,.55)}
+  .music-progress input{
+    flex:1;-webkit-appearance:none;appearance:none;height:4px;border-radius:2px;background:rgba(255,255,255,.25);outline:none;
+  }
+  .music-progress input::-webkit-slider-thumb{-webkit-appearance:none;width:10px;height:10px;border-radius:50%;background:#fff}
+  .music-controls{display:flex;align-items:center;gap:52px;margin-top:16px}
+  .music-controls button{color:#fff;display:grid;place-items:center}
+  .music-controls .pp{width:72px;height:72px}
+  .music-controls svg{display:block}
+  .music-list{width:100%;margin-top:18px;border-top:1px solid rgba(255,255,255,.12);overflow-y:auto;touch-action:pan-y;scrollbar-width:none}
+  .music-list::-webkit-scrollbar{display:none}
+  .music-list button{
+    display:flex;justify-content:space-between;width:100%;padding:11px 2px;font-size:13.5px;text-align:left;
+    border-bottom:1px solid rgba(255,255,255,.07);color:rgba(255,255,255,.85);
+  }
+  .music-list button.on{color:#e8324a}
+
+  /* ---------- 抖音 ---------- */
+  .panel-douyin{background:#000}
+  .dy-video{position:absolute;inset:0;width:100%;height:100%;border:0}
+  .dy-top{
+    position:absolute;top:calc(max(14px,env(safe-area-inset-top)) + 24px);left:0;right:0;z-index:6;
+    display:flex;justify-content:center;gap:26px;font-size:16px;color:rgba(255,255,255,.65);
+    text-shadow:0 1px 8px rgba(0,0,0,.4);pointer-events:none;
+  }
+  .dy-top .on{color:#fff;font-weight:600;position:relative}
+  .dy-top .on::after{content:"";position:absolute;left:50%;bottom:-7px;transform:translateX(-50%);width:22px;height:2.5px;border-radius:2px;background:#fff}
+  .dy-rail{
+    position:absolute;right:8px;bottom:120px;z-index:6;display:flex;flex-direction:column;align-items:center;gap:20px;
+  }
+  .dy-avatar{
+    width:48px;height:48px;border-radius:50%;background:#c8102e;display:grid;place-items:center;
+    font-family:Georgia,serif;font-size:22px;border:1.5px solid #fff;position:relative;
+  }
+  .dy-avatar i{
+    position:absolute;bottom:-7px;left:50%;transform:translateX(-50%);
+    width:16px;height:16px;border-radius:50%;background:#fe2c55;font-style:normal;
+    font-size:11px;display:grid;place-items:center;line-height:1;
+  }
+  .dy-act{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11.5px;color:#fff;text-shadow:0 1px 6px rgba(0,0,0,.5)}
+  .dy-act svg{display:block}
+  .dy-act.liked svg{fill:#fe2c55}
+  .dy-info{position:absolute;left:12px;right:74px;bottom:max(24px,calc(env(safe-area-inset-bottom) + 16px));z-index:6;pointer-events:none}
+  .dy-name{font-size:15.5px;font-weight:600}
+  .dy-cap{margin-top:6px;font-size:13.5px;line-height:1.55;color:rgba(255,255,255,.94)}
+  .dy-music{margin-top:8px;font-size:12px;color:rgba(255,255,255,.85);display:flex;align-items:center;gap:6px}
+  .dy-music .marq{overflow:hidden;max-width:170px;white-space:nowrap}
+  .dy-music .marq span{display:inline-block;animation:marq 7s linear infinite}
+  @keyframes marq{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+  /* 评论抽屉 */
+  .dy-comments{
+    position:absolute;left:0;right:0;bottom:0;z-index:9;height:62%;
+    background:#121216;border-radius:14px 14px 0 0;display:flex;flex-direction:column;
+    transform:translateY(102%);transition:transform .38s cubic-bezier(.32,.72,.3,1);
+  }
+  .dy-comments.open{transform:translateY(0)}
+  .dy-cmt-head{padding:14px;text-align:center;font-size:13px;color:rgba(255,255,255,.75);position:relative}
+  .dy-cmt-head button{position:absolute;right:10px;top:8px;font-size:18px;color:rgba(255,255,255,.6);padding:6px}
+  .dy-cmt-list{flex:1;overflow-y:auto;padding:0 14px;-webkit-overflow-scrolling:touch;touch-action:pan-y;scrollbar-width:none;-ms-overflow-style:none}
+  .dy-cmt-list::-webkit-scrollbar{display:none}
+  .dy-cmt-item{display:flex;gap:10px;padding:9px 0}
+  .dy-cmt-item .ava{flex:none;width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-size:13px;color:#fff;overflow:hidden}
+  .dy-cmt-item .ava img{width:100%;height:100%;object-fit:cover;display:block}
+  .dy-cmt-item .who{font-size:11.5px;color:rgba(255,255,255,.55)}
+  .dy-cmt-item .txt{font-size:13.5px;line-height:1.5;margin-top:2px}
+  .dy-cmt-input{display:flex;gap:8px;padding:10px 12px max(12px,env(safe-area-inset-bottom));border-top:1px solid rgba(255,255,255,.08)}
+  .dy-cmt-input input{
+    flex:1;height:36px;border:none;border-radius:18px;background:#2a2a30;color:#fff;padding:0 14px;font-size:13.5px;outline:none;
+  }
+  .dy-cmt-input button{color:#fe2c55;font-size:14px;font-weight:600;padding:0 8px}
+  /* 点赞爆裂 */
+  .dy-burst{position:absolute;z-index:7;pointer-events:none;font-size:22px;animation:burst .9s ease-out forwards}
+  @keyframes burst{
+    0%{transform:translate(0,0) scale(.5);opacity:1}
+    100%{transform:translate(var(--bx),var(--by)) scale(1.25);opacity:0}
+  }
+
+  /* ---------- 提示 ---------- */
+  .toast{
+    position:absolute;left:50%;bottom:110px;transform:translate(-50%,16px);z-index:70;
+    padding:10px 18px;border-radius:999px;background:rgba(20,20,24,.88);font-size:13px;
+    opacity:0;transition:opacity .3s,transform .3s;pointer-events:none;white-space:nowrap;
+  }
+  .toast.show{opacity:1;transform:translate(-50%,0)}
+
+  /* 手机直接使用网页可视区域，不再叠加一套模拟系统栏。 */
+  @media (max-width:599px){
+    .stage{height:100%;height:100dvh;bottom:auto}
+    .phone{--app-bottom:calc(env(safe-area-inset-bottom) + 76px)}
+    .dynamic-island,.statusbar,.home-indicator{display:none}
+    .lock{padding-top:calc(env(safe-area-inset-top) + 32px)}
+    .lock-hint{bottom:calc(env(safe-area-inset-bottom) + 28px)}
+    .apps{
+      min-height:0;overflow-y:auto;touch-action:pan-y;scrollbar-width:none;
+      gap:24px 12px;
+      padding:calc(env(safe-area-inset-top) + 24px) clamp(18px,6vw,26px) calc(env(safe-area-inset-bottom) + 144px);
+    }
+    .apps::-webkit-scrollbar{display:none}
+    .widget{aspect-ratio:auto;min-height:140px;padding:20px 16px;gap:14px;border-radius:24px}
+    .wd-time{font-size:clamp(50px,15vw,64px)}
+    .icon .glyph{width:clamp(52px,15vw,64px);height:clamp(52px,15vw,64px)}
+    .dock{
+      left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom) + 36px);
+      padding:12px 14px;border-radius:28px;
+    }
+    .home .beian{bottom:calc(env(safe-area-inset-bottom) + 12px);font-size:10px;line-height:14px}
+    .home .beian a{color:rgba(255,255,255,.72);text-shadow:0 1px 5px rgba(0,0,0,.5)}
+    .panel-music .app-head{padding-top:calc(env(safe-area-inset-top) + 20px)}
+    .app-head .sub{top:calc(env(safe-area-inset-top) + 8px)}
+    .panel-music,.panel-calc,.app-panel.panel-phone{padding-bottom:var(--app-bottom)}
+    .app-panel.panel-phone{overflow-y:auto;touch-action:pan-y}
+    .ph-keypad,.ph-call{flex-shrink:0}
+    .ph-display{padding-top:calc(env(safe-area-inset-top) + 28px)}
+    .sms-head,.sf-bar{padding-top:calc(env(safe-area-inset-top) + 20px)}
+    .sms-input{padding-bottom:var(--app-bottom)}
+    .sf-tools{padding-bottom:var(--app-bottom)}
+    .dy-top{top:calc(env(safe-area-inset-top) + 24px)}
+    .dy-info{bottom:var(--app-bottom)}
+    /* 保留点击和上滑返回交互，用文字按钮替代假的 Home 横条。 */
+    .app-homebar{
+      left:50%;right:auto;bottom:calc(env(safe-area-inset-bottom) + 12px);transform:translateX(-50%);
+      height:44px;min-width:112px;padding:0 18px;place-items:center;border-radius:22px;
+      background:rgba(24,24,28,.84);color:#fff;font-size:13px;font-weight:500;
+      border:1px solid rgba(255,255,255,.18);box-shadow:0 3px 14px rgba(0,0,0,.15);
+      backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+    }
+    .app-homebar i{display:none}
+    .app-homebar .mobile-home-label{display:block}
+    .app-homebar.dark{background:rgba(255,255,255,.94);color:#1c1c1e;border-color:rgba(0,0,0,.1)}
+    .app-homebar:focus-visible{outline:2px solid #007aff;outline-offset:3px}
+  }
+
+  /* 微信标题栏占用高度或小屏手机：缩紧首屏，入口仍留足点击面积。 */
+  @media (max-width:599px) and (max-height:650px){
+    .apps{padding-top:calc(env(safe-area-inset-top) + 18px);gap:18px 10px}
+    .widget{min-height:120px;padding:16px 12px;gap:10px}
+    .wd-time{font-size:50px}
+    .wd-date,.wd-count{font-size:10px}
+    .icon .glyph{width:52px;height:52px}
+    .dock{padding:10px 14px;border-radius:24px}
+    .ph-display{min-height:92px;font-size:30px}
+    .ph-keypad{gap:10px;padding-top:6px}
+    .ph-key{height:58px}
+    .ph-call{width:58px;height:58px}
+  }
+
+  @media (max-width:599px) and (max-height:420px){
+    .apps{padding-top:calc(env(safe-area-inset-top) + 12px);gap:12px 10px}
+    .widget{min-height:104px;padding:12px;gap:8px}
+    .wd-time{font-size:44px}
+  }
+
+  @media (min-width:600px){
+    .home > .statusbar,.app-panel .statusbar{height:54px;padding:19px 30px 0;font-size:14px}
+    .panel-music .app-head{padding-top:60px}
+    .app-head .sub{top:48px}
+    .ph-display{padding-top:70px}
+    .sms-head,.sf-bar{padding-top:60px}
+    .dy-top{top:64px}
+    .apps{padding-top:24px}
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
+  }
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="device-shell" id="deviceShell">
+    <span class="device-key action" aria-hidden="true"></span>
+    <span class="device-key volume-up" aria-hidden="true"></span>
+    <span class="device-key volume-down" aria-hidden="true"></span>
+    <span class="device-key power" aria-hidden="true"></span>
+    <div class="dynamic-island" aria-hidden="true"></div>
+  <div class="phone" id="phone">
+    <div class="wallpaper"></div>
+
+    <!-- 状态栏（桌面用） -->
+    <div class="home" id="home">
+      <div class="statusbar">
+        <span class="sb-time">9:41</span>
+        <span class="sb-icons">
+          <svg width="17" height="11" viewBox="0 0 17 11" fill="#fff"><rect x="0" y="7" width="3" height="4" rx="0.5"/><rect x="4.5" y="5" width="3" height="6" rx="0.5"/><rect x="9" y="2.5" width="3" height="8.5" rx="0.5"/><rect x="13.5" y="0" width="3" height="11" rx="0.5"/></svg>
+          <svg width="15" height="11" viewBox="0 0 15 11" fill="#fff"><path d="M7.5 9.2a1.3 1.3 0 1 0 0 2.6 1.3 1.3 0 0 0 0-2.6zM7.5 5.6c-1.7 0-3.2.66-4.3 1.74l1.4 1.44A4.1 4.1 0 0 1 7.5 7.6c1.12 0 2.14.45 2.9 1.18l1.4-1.44A5.98 5.98 0 0 0 7.5 5.6zM7.5 1C4.46 1 1.7 2.14-.3 4.06l1.4 1.44A8.6 8.6 0 0 1 7.5 3c2.5 0 4.76 1 6.4 2.64l1.4-1.44A10.55 10.55 0 0 0 7.5 1z" transform="translate(0 -1)"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.5" y="0.5" width="21" height="11" rx="3" stroke="#fff" opacity=".4"/><rect x="2" y="2" width="16" height="8" rx="1.5" fill="#fff"/><path d="M23.5 4v4c1-.3 1.5-1 1.5-2s-.5-1.7-1.5-2z" fill="#fff" opacity=".4"/></svg>
+        </span>
+      </div>
+
+      <div class="apps">
+        <div class="widget" aria-hidden="true">
+          <div class="wd-time"><span id="wdH">12</span><span class="wd-colon">:</span><span id="wdM">15</span></div>
+          <div class="wd-right">
+            <div class="wd-date" id="wdDate">10月1日 星期四</div>
+            <div class="wd-count" id="wdCount"></div>
+          </div>
+        </div>
+        <button class="icon" data-app="calendar" type="button">
+          <span class="glyph"><img src="assets/icons/calendar.webp" alt=""></span>
+          <span class="label">日历</span>
+        </button>
+        <button class="icon" data-app="calc" type="button">
+          <span class="glyph"><img src="assets/icons/calc.webp" alt=""></span>
+          <span class="label">计算器</span>
+        </button>
+        <button class="icon" data-app="music" type="button">
+          <span class="glyph"><img src="assets/icons/music.webp" alt=""></span>
+          <span class="label">音乐</span>
+        </button>
+        <button class="icon" data-app="douyin" type="button">
+          <span class="glyph"><img src="assets/icons/douyin.webp" alt=""></span>
+          <span class="label">抖音特供版</span>
+        </button>
+      </div>
+
+      <div class="beian"><a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">蜀ICP备2026032415号-2</a></div>
+      <div class="dock">
+        <button class="icon" data-app="phone" type="button" aria-label="电话">
+          <span class="glyph"><img src="assets/icons/phone.webp" alt=""></span>
+          <span class="label">电话</span>
+        </button>
+        <button class="icon" data-app="sms" type="button" aria-label="短信">
+          <span class="glyph"><img src="assets/icons/sms.webp" alt=""></span>
+          <span class="label">短信</span>
+        </button>
+        <button class="icon" data-app="safari" type="button" aria-label="浏览器">
+          <span class="glyph"><img src="assets/icons/safari.webp" alt=""></span>
+          <span class="label">浏览器</span>
+        </button>
+      </div>
+      <div class="home-indicator"></div>
+    </div>
+
+    <!-- 锁屏 -->
+    <div class="lock" id="lock">
+      <div class="lock-date" id="lockDate">10月18日 星期日</div>
+      <div class="lock-time" id="lockTime">9:41</div>
+      <div class="lock-xiao">小李 · 可可</div>
+      <div class="lock-hint">向上轻扫以打开</div>
+      <div class="home-indicator"></div>
+    </div>
+
+    <!-- 开机 -->
+    <div class="boot" id="boot">
+      <div class="boot-logo" role="img" aria-label="Apple 苹果标志">
+        <!-- Apple icon: Font Awesome Free 6.7.2, CC BY 4.0; https://fontawesome.com/license/free -->
+        <svg viewBox="0 0 384 512" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+          <defs>
+            <linearGradient id="bootGold" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#fbe3ae"/>
+              <stop offset=".45" stop-color="#eec06a"/>
+              <stop offset="1" stop-color="#d99a3c"/>
+            </linearGradient>
+          </defs>
+          <path fill="url(#bootGold)" d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"/>
+        </svg>
+      </div>
+      <div class="boot-bar"><i></i></div>
+    </div>
+
+    <!-- App 窗口 -->
+    <div class="appwin" id="appwin">
+
+      <!-- 日历：月历、年份概览和日程详情 -->
+      <section class="app-panel panel-calendar" id="panel-calendar" aria-label="日历">
+        <header class="cal-header" id="calHeader">
+          <div class="cal-topline">
+            <button class="cal-year-button" type="button" id="calYearButton" aria-label="查看年份" aria-pressed="false">
+              <svg viewBox="0 0 16 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l-9 9 9 9"/></svg>
+              <span id="calYearLabel">2026</span>
+            </button>
+            <div class="cal-view-switch" role="group" aria-label="日历视图">
+              <button type="button" id="calMonthView" class="active" aria-label="月视图" aria-pressed="true" title="月视图">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 2.5v3M16 2.5v3M8 13h.01M12 13h.01M16 13h.01M8 17h.01M12 17h.01M16 17h.01"/></svg>
+              </button>
+              <button type="button" id="calListView" aria-label="日程列表" aria-pressed="false" title="日程列表">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M8 5h13M8 12h13M8 19h13M3 5h.01M3 12h.01M3 19h.01"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="cal-month-heading">
+            <h1 id="calTitle">10月</h1>
+            <div class="cal-month-nav">
+              <button type="button" id="calPrev" aria-label="上个月"><svg viewBox="0 0 16 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l-9 9 9 9"/></svg></button>
+              <button type="button" id="calNext" aria-label="下个月"><svg viewBox="0 0 16 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 3l9 9-9 9"/></svg></button>
+            </div>
+          </div>
+        </header>
+        <div class="cal-week" id="calWeek" aria-hidden="true"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
+        <div class="cal-scroll" id="calScroll">
+          <div class="cal-grid" id="calGrid" role="group" aria-label="月份日期"></div>
+          <div class="cal-agenda" id="calAgenda" hidden></div>
+          <div class="cal-year-grid" id="calYearGrid" role="group" aria-label="年份月份" hidden></div>
+        </div>
+        <nav class="cal-toolbar" id="calToolbar" aria-label="日历工具栏">
+          <button type="button" id="calToday">今天</button>
+          <button type="button" id="calHome" aria-label="返回桌面">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5L12 3l9 7.5M5.5 9v11h13V9M9.5 20v-6h5v6"/></svg>
+            返回桌面
+          </button>
+        </nav>
+        <div class="cal-detail-overlay" id="calDetail" data-no-home-gesture hidden>
+          <button class="cal-backdrop" type="button" id="calDetailBackdrop" tabindex="-1" aria-label="关闭日程详情"></button>
+          <section class="cal-sheet" id="calDetailSheet" role="dialog" aria-modal="true" aria-labelledby="calDetailHeading" tabindex="-1">
+            <div class="cal-sheet-head">
+              <h2 id="calDetailHeading">日程详情</h2>
+              <button type="button" id="calDetailClose">完成</button>
+            </div>
+            <div class="cal-sheet-body">
+              <div id="calEventContent">
+                <h3 class="cal-detail-title" id="calDetailTitle">婚礼</h3>
+                <p class="cal-detail-date" id="calDetailDate"></p>
+                <div class="cal-detail-row"><span>时间</span><div id="calDetailTime"></div></div>
+                <div class="cal-detail-row"><span>地点</span><div><div id="calDetailVenue"></div><small id="calDetailAddress"></small></div></div>
+                <div class="cal-detail-row"><span>日历</span><div><i class="cal-calendar-dot" aria-hidden="true"></i>婚礼</div></div>
+                <button class="cal-detail-action" type="button" id="calInvite">查看请柬<svg viewBox="0 0 16 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 3l9 9-9 9"/></svg></button>
+                <button class="cal-detail-action" type="button" id="calIcs">加入系统日历<svg viewBox="0 0 16 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 3l9 9-9 9"/></svg></button>
+              </div>
+              <div class="cal-empty" id="calEmptyDay" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 2v4M16 2v4M9 15h6"/></svg><strong>没有日程</strong><p id="calEmptyDate"></p></div>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <!-- 计算器 -->
+      <section class="app-panel panel-calc" id="panel-calc">
+        <div class="calc-display" id="calcDisplay">0</div>
+        <div class="calc-grid" id="calcGrid">
+          <button type="button" class="fn" data-k="ac">AC</button>
+          <button type="button" class="fn" data-k="neg">±</button>
+          <button type="button" class="fn" data-k="pct">%</button>
+          <button type="button" class="op" data-k="/">÷</button>
+          <button type="button" data-k="7">7</button>
+          <button type="button" data-k="8">8</button>
+          <button type="button" data-k="9">9</button>
+          <button type="button" class="op" data-k="*">×</button>
+          <button type="button" data-k="4">4</button>
+          <button type="button" data-k="5">5</button>
+          <button type="button" data-k="6">6</button>
+          <button type="button" class="op" data-k="-">−</button>
+          <button type="button" data-k="1">1</button>
+          <button type="button" data-k="2">2</button>
+          <button type="button" data-k="3">3</button>
+          <button type="button" class="op" data-k="+">+</button>
+          <button type="button" class="zero" data-k="0">0</button>
+          <button type="button" data-k=".">.</button>
+          <button type="button" class="op" data-k="=">=</button>
+        </div>
+      </section>
+
+      <!-- 音乐 -->
+      <section class="app-panel panel-music" id="panel-music">
+        <div class="app-head">正在播放</div>
+        <div class="music-body">
+          <div class="music-cover"><img id="musicCover" src="../wumu/assets/night-market.webp" alt=""></div>
+          <div class="music-title" id="musicTitle">A Thousand Years</div>
+          <div class="music-artist" id="musicArtist">Christina Perri</div>
+          <div class="music-progress">
+            <span id="musicCur">0:00</span>
+            <input type="range" id="musicSeek" min="0" max="1000" value="0" aria-label="播放进度">
+            <span id="musicDur">0:00</span>
+          </div>
+          <div class="music-controls">
+            <button type="button" id="musicPrev" aria-label="上一首">
+              <svg width="34" height="34" viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h2v14H6zM20 5v14L9.5 12z"/></svg>
+            </button>
+            <button type="button" class="pp" id="musicPlay" aria-label="播放或暂停">
+              <svg id="musicPlayIcon" width="72" height="72" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l13-7.5z"/></svg>
+            </button>
+            <button type="button" id="musicNext" aria-label="下一首">
+              <svg width="34" height="34" viewBox="0 0 24 24" fill="currentColor"><path d="M16 5h2v14h-2zM4 5v14l10.5-7z"/></svg>
+            </button>
+          </div>
+          <div class="music-list" id="musicList"></div>
+        </div>
+      </section>
+
+      <!-- 抖音 · 小李可可特供版 -->
+      <section class="app-panel panel-douyin" id="panel-douyin">
+        <div class="dy-top"><span>关注</span><span class="on">推荐</span></div>
+        <div class="dy-rail">
+          <div class="dy-avatar">囍<i>+</i></div>
+          <button type="button" class="dy-act" id="dyLike" aria-label="点赞">
+            <svg width="34" height="34" viewBox="0 0 24 24" fill="#fff"><path d="M12 21s-7.5-4.9-9.8-9.2C.6 8.6 2.3 5 5.7 5c2 0 3.4 1.1 4.3 2.4l2 2.7 2-2.7C14.9 6.1 16.3 5 18.3 5c3.4 0 5.1 3.6 3.5 6.8C19.5 16.1 12 21 12 21z" transform="scale(.92) translate(1 .6)"/></svg>
+            <span id="dyLikeCount">1108</span>
+          </button>
+          <button type="button" class="dy-act" id="dyCmt" aria-label="评论">
+            <svg width="33" height="33" viewBox="0 0 24 24" fill="#fff"><path d="M12 3C6.5 3 2 6.9 2 11.7c0 2.7 1.4 5.1 3.6 6.7-.2 1-.7 2-1.5 2.8-.2.2 0 .6.3.6 1.9-.1 3.5-.8 4.8-1.7.9.2 1.8.3 2.8.3 5.5 0 10-3.9 10-8.7S17.5 3 12 3z"/></svg>
+            <span id="dyCmtCount">1314</span>
+          </button>
+          <button type="button" class="dy-act" id="dyShare" aria-label="分享">
+            <svg width="33" height="33" viewBox="0 0 24 24" fill="#fff"><path d="M13 4.2V8c-4.7.4-8 3.4-9.4 8.1-.1.4.4.7.7.4C6.4 14.4 9.3 13.2 13 13.2v3.9c0 .5.6.8 1 .4l6.7-6.3c.3-.3.3-.8 0-1.1L14 3.8c-.4-.4-1-.1-1 .4z"/></svg>
+            <span>分享</span>
+          </button>
+        </div>
+        <div class="dy-info">
+          <p class="dy-name">@小李可可</p>
+          <p class="dy-cap">我们要结婚啦 ❤️ 2026.10.18 湖畔礼堂，等你来！</p>
+          <p class="dy-music">♪ <span class="marq"><span>原声 · 小李可可&nbsp;&nbsp;&nbsp;原声 · 小李可可&nbsp;&nbsp;&nbsp;</span></span></p>
+        </div>
+        <div class="dy-comments" id="dyComments">
+          <div class="dy-cmt-head">全部评论<button type="button" id="dyCmtClose" aria-label="关闭评论">✕</button></div>
+          <div class="dy-cmt-list" id="dyCmtList"></div>
+          <div class="dy-cmt-input">
+            <input type="text" id="dyCmtInput" placeholder="写下你的祝福…" maxlength="60">
+            <button type="button" id="dyCmtSend">发送</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 电话 -->
+      <section class="app-panel panel-phone" id="panel-phone">
+        <div class="ph-display" id="phDisplay">18483640431</div>
+        <div class="ph-sub">小李 · 手机</div>
+        <div class="ph-keypad" id="phKeypad">
+          <button type="button" class="ph-key" data-d="1">1</button>
+          <button type="button" class="ph-key" data-d="2">2<small>ABC</small></button>
+          <button type="button" class="ph-key" data-d="3">3<small>DEF</small></button>
+          <button type="button" class="ph-key" data-d="4">4<small>GHI</small></button>
+          <button type="button" class="ph-key" data-d="5">5<small>JKL</small></button>
+          <button type="button" class="ph-key" data-d="6">6<small>MNO</small></button>
+          <button type="button" class="ph-key" data-d="7">7<small>PQRS</small></button>
+          <button type="button" class="ph-key" data-d="8">8<small>TUV</small></button>
+          <button type="button" class="ph-key" data-d="9">9<small>WXYZ</small></button>
+          <button type="button" class="ph-key" data-d="*">*</button>
+          <button type="button" class="ph-key" data-d="0">0<small>+</small></button>
+          <button type="button" class="ph-key" data-d="#">#</button>
+        </div>
+        <button type="button" class="ph-call" id="phCall" aria-label="拨打">
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="#fff"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.2.2 2.4.6 3.6.1.3 0 .7-.2 1l-2.3 2.2z"/></svg>
+        </button>
+      </section>
+
+      <!-- 短信 -->
+      <section class="app-panel panel-sms" id="panel-sms">
+        <div class="sms-head">
+          <div class="sms-ava">囍</div>
+          <div class="sms-name">小李可可</div>
+        </div>
+        <div class="sms-body" id="smsBody">
+          <div class="sms-time">今天 10:08</div>
+          <div class="sms-bubble in">【结婚通知】亲爱的家人朋友：</div>
+          <div class="sms-bubble in">我们要结婚啦 ❤️ 谨定于 2026年10月18日（星期日）17:30，在湖畔礼堂 · 三楼宴会厅举行婚礼。</div>
+          <div class="sms-bubble in">地址：示例市示例区湖畔路 88 号。恭候光临，不见不散！</div>
+          <div class="sms-bubble in">—— 小李 &amp; 可可</div>
+        </div>
+        <div class="sms-input">
+          <input type="text" id="smsInput" placeholder="短信 · 回复" maxlength="80">
+          <button type="button" id="smsSend" aria-label="发送">↑</button>
+        </div>
+      </section>
+
+      <!-- 浏览器 -->
+      <section class="app-panel panel-safari" id="panel-safari">
+        <div class="sf-bar">
+          <div class="sf-url">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="#8e8e93"><path d="M12 1a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-9a2 2 0 0 0-2-2h-1V6a5 5 0 0 0-5-5zm-3 8V6a3 3 0 1 1 6 0v3H9z"/></svg>
+            xiaolikeke.vip/wumu
+          </div>
+        </div>
+        <div class="sf-tools">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 4.5L8 12l7.5 7.5 1.4-1.4L10.8 12l6.1-6.1z"/></svg>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" opacity=".35"><path d="M8.5 4.5L16 12l-7.5 7.5-1.4-1.4 6.1-6.1-6.1-6.1z"/></svg>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l4 4h-3v6h-2V7H8zm-7 9h2v7h10v-7h2v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2z"/></svg>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm8 1.5V8h4.5z" opacity=".9"/></svg>
+        </div>
+      </section>
+
+      <div class="return-gesture-bottom" id="returnGestureBottom" aria-hidden="true"></div>
+      <button class="app-homebar" id="appHomeBar" type="button" aria-label="返回桌面" title="底部上滑或从左右边缘向内滑动返回桌面" style="display:none"><i aria-hidden="true"></i><span class="mobile-home-label">返回桌面</span></button>
+    </div>
+
+    <div class="return-gesture-feedback" id="returnGestureFeedback" aria-hidden="true"></div>
+    <div class="toast" id="toast"></div>
+  </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ---------- 婚礼信息（与其他页面同一套 CONFIG） ---------- */
+  var CONFIG = {
+    groom: '新郎', bride: '新娘',
+    dateText: '2026.10.18', dateISO: '20261018',
+    timeText: '17:30 签到',
+    venue: '湖畔礼堂 · 三楼宴会厅',
+    address: '示例市示例区湖畔路 88 号',
+    together: '2023.10.06'
+  };
+  var WEDDING = { y: 2026, m: 9, d: 18 }; // m 从 0 计
+
+  var $ = function (id) { return document.getElementById(id); };
+  var phone = $('phone'), boot = $('boot'), lock = $('lock'), home = $('home'), appwin = $('appwin');
+  var toastEl = $('toast'), toastTimer = 0;
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var deviceShell = $('deviceShell');
+  function fitDevice() {
+    var stage = deviceShell.parentNode;
+    var scale = Math.max(.1, Math.min(1, (stage.clientWidth - 48) / 418, (stage.clientHeight - 48) / 864));
+    deviceShell.style.setProperty('--device-scale', scale);
+  }
+  fitDevice();
+  window.addEventListener('resize', fitDevice);
+
+  function toast(msg) {
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toastEl.classList.remove('show'); }, 2400);
+  }
+
+  /* ---------- 时钟 ---------- */
+  var WEEK = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+  function tickClock() {
+    var d = new Date();
+    var t = d.getHours() + ':' + String(d.getMinutes()).padStart(2, '0');
+    var spans = document.querySelectorAll('.sb-time');
+    for (var i = 0; i < spans.length; i++) spans[i].textContent = t;
+    $('lockTime').textContent = t;
+    $('lockDate').textContent = (d.getMonth() + 1) + '月' + d.getDate() + '日 ' + WEEK[d.getDay()];
+    /* 桌面时钟小组件 */
+    $('wdH').textContent = d.getHours();
+    $('wdM').textContent = String(d.getMinutes()).padStart(2, '0');
+    $('wdDate').textContent = (d.getMonth() + 1) + '月' + d.getDate() + '日 ' + WEEK[d.getDay()];
+  }
+  tickClock();
+  setInterval(tickClock, 1000);
+
+  /* 小组件右侧：婚礼倒计时 */
+  (function () {
+    var diff = Math.round((new Date(2026, 9, 18) - new Date()) / 86400000);
+    $('wdCount').textContent = diff > 0 ? '距婚礼还有 ' + diff + ' 天' : (diff === 0 ? '婚礼就是今天 ❤' : '我们结婚啦 ❤');
+  })();
+
+  /* 有新壁纸（assets/wallpaper.webp）就高清直出，否则回退模糊插画 */
+  (function () {
+    var img = new Image();
+    img.onload = function () { document.querySelector('.wallpaper').classList.add('crisp'); };
+    img.src = 'assets/wallpaper.webp';
+  })();
+
+  /* 每个 App 顶部注入 iOS 状态栏（日历为浅色底用深色图标） */
+  (function () {
+    var html = document.querySelector('.home .statusbar').innerHTML;
+    [['panel-calendar', true], ['panel-calc', false], ['panel-music', false], ['panel-douyin', false],
+     ['panel-phone', true], ['panel-sms', true], ['panel-safari', true]].forEach(function (cfg) {
+      var p = $(cfg[0]);
+      var el = document.createElement('div');
+      el.className = 'statusbar' + (cfg[1] ? ' dark' : '');
+      el.innerHTML = html;
+      p.insertBefore(el, p.firstChild);
+    });
+  })();
+
+  /* ---------- 开机 → 锁屏 → 桌面 ---------- */
+  setTimeout(function () {
+    boot.classList.add('gone');
+    setTimeout(function () { if (boot.parentNode) boot.parentNode.removeChild(boot); }, 800);
+  }, reduced ? 50 : 2500);
+
+  function unlock() {
+    if (lock.classList.contains('unlock')) return;
+    lock.classList.add('unlock');
+    lock.setAttribute('inert', '');
+    lock.setAttribute('aria-hidden', 'true');
+    home.classList.add('on');
+  }
+  var lockY = null;
+  lock.addEventListener('touchstart', function (e) { lockY = e.touches[0].clientY; }, { passive: true });
+  lock.addEventListener('touchend', function (e) {
+    if (lockY !== null && lockY - e.changedTouches[0].clientY > 34) unlock();
+    lockY = null;
+  }, { passive: true });
+  lock.addEventListener('click', unlock); // 桌面端点击也可解锁
+
+  /* ---------- App 打开 / 关闭 ---------- */
+  var currentApp = null;
+  var appHomeBar = $('appHomeBar');
+  var parkTimers = {};
+  var navigationPending = false;
+  var APP_ROUTES = {
+    home: '桌面', calendar: '日历', calc: '计算器', music: '音乐',
+    douyin: '抖音特供版', phone: '电话', sms: '短信', safari: '浏览器'
+  };
+  var HOME_TITLE = document.title;
+
+  /* iframe 的声音/动画控制（抖音与浏览器共用一个五幕页面） */
+  function frameCtl(panelId, cmd) {
+    var f = document.querySelector('#' + panelId + ' iframe');
+    if (f && f.contentWindow) {
+      try { f.contentWindow.postMessage({ type: 'dy-ctl', cmd: cmd }, '*'); } catch (e) {}
+    }
+  }
+  var safariReady = false;
+  function bootSafari() {
+    if (safariReady) return;
+    safariReady = true;
+    var f = document.createElement('iframe');
+    f.className = 'sf-frame';
+    prepareAppFrame(f, 'safari');
+    f.src = '../wumu/index.html?embed=1';
+    f.setAttribute('allow', 'autoplay');
+    var panel = $('panel-safari');
+    panel.insertBefore(f, panel.querySelector('.sf-tools'));
+  }
+
+  /* ---------- 路由：URL 是当前界面的唯一入口 ---------- */
+  function readRoute() {
+    var match = /^#\/([a-z]+)\/?$/.exec(location.hash);
+    return match && Object.prototype.hasOwnProperty.call(APP_ROUTES, match[1]) ? match[1] : 'home';
+  }
+  function routeUrl(name) {
+    return location.pathname + location.search + '#/' + name;
+  }
+  function routeEntry() {
+    return history.state && history.state.weddingPhone;
+  }
+  function ownsEntry(entry, name) {
+    return !!(entry && entry.version === 1 && entry.route === name && typeof entry.homeKey === 'string');
+  }
+  function routeState(name, homeKey) {
+    return { weddingPhone: { version: 1, route: name, homeKey: homeKey, homeBehind: name !== 'home' } };
+  }
+  function newHomeKey() {
+    return Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
+  }
+  function normalizeEntry(name) {
+    var entry = routeEntry();
+    if (ownsEntry(entry, name)) {
+      if (location.hash !== '#/' + name) history.replaceState(history.state, '', routeUrl(name));
+      return;
+    }
+    var key = newHomeKey();
+    /* 直达 App 或手动修改 hash：先补一个桌面入口，返回不误退出网站。
+       刷新已有的受管记录不会重复补历史。 */
+    history.replaceState(routeState('home', key), '', routeUrl('home'));
+    if (name !== 'home') history.pushState(routeState(name, key), '', routeUrl(name));
+  }
+  function updateReturnControls() {
+    var commentsOpen = currentApp === 'douyin' && $('dyComments').classList.contains('open');
+    /* 日历自带底部返回按钮，不重复显示悬浮返回控件。 */
+    appHomeBar.style.display = currentApp && currentApp !== 'calendar' && !commentsOpen ? 'grid' : 'none';
+    phone.classList.toggle('app-open', !!currentApp);
+    phone.classList.toggle('gestures-disabled', commentsOpen || hasFocusedEditor());
+  }
+  function showApp(name, iconEl) {
+    if (currentApp === name) return;
+    currentApp = name;
+    var panel = $('panel-' + name);
+    clearTimeout(parkTimers[name]);
+    panel.classList.remove('parked');
+    panel.removeAttribute('inert');
+    panel.setAttribute('aria-hidden', 'false');
+    var pr = phone.getBoundingClientRect();
+    var ir = (iconEl || document.querySelector('.icon[data-app="' + name + '"]')).getBoundingClientRect();
+    var scale = pr.width / phone.offsetWidth;
+    panel.style.transformOrigin = ((ir.left - pr.left + ir.width / 2) / scale) + 'px ' + ((ir.top - pr.top + ir.height / 2) / scale) + 'px';
+    void panel.offsetWidth;
+    panel.classList.add('show');
+    home.setAttribute('inert', '');
+    home.setAttribute('aria-hidden', 'true');
+    appwin.style.pointerEvents = 'auto';
+    appHomeBar.classList.toggle('dark', ['calendar', 'phone', 'sms', 'safari'].indexOf(name) >= 0);
+    if (name === 'douyin' || name === 'safari') audio.pause();
+    if (name === 'douyin') { bootDouyin(); frameCtl('panel-douyin', 'resume'); }
+    if (name === 'safari') { bootSafari(); frameCtl('panel-safari', 'resume'); }
+    if (name === 'calendar') renderCal();
+    updateReturnControls();
+  }
+  function hideApp() {
+    if (!currentApp) return;
+    var name = currentApp;
+    var panel = $('panel-' + name);
+    if (name === 'calendar') closeCalDetail(false);
+    var active = document.activeElement;
+    if (active && panel.contains(active) && active.blur) active.blur();
+    panel.classList.remove('show');
+    panel.setAttribute('inert', '');
+    panel.setAttribute('aria-hidden', 'true');
+    appwin.style.pointerEvents = 'none';
+    currentApp = null;
+    home.removeAttribute('inert');
+    home.setAttribute('aria-hidden', 'false');
+    if (name === 'douyin' || name === 'safari') frameCtl('panel-' + name, 'pause');
+    clearTimeout(parkTimers[name]);
+    /* 每个 App 独立收尾，快速重开或切换不会让旧动画隐藏当前窗口。 */
+    parkTimers[name] = setTimeout(function () {
+      if (!panel.classList.contains('show')) panel.classList.add('parked');
+    }, reduced ? 0 : 480);
+    $('dyComments').classList.remove('open');
+    updateReturnControls();
+  }
+  function applyRoute(name, unlockHome) {
+    resetReturnGesture();
+    navigationPending = false;
+    if (currentApp && currentApp !== name) hideApp();
+    if (name !== 'home') {
+      unlock();
+      showApp(name);
+    } else if (unlockHome) unlock();
+    document.title = name === 'home' ? HOME_TITLE : APP_ROUTES[name] + ' · 小李可可的手机';
+  }
+  function syncRoute() {
+    var name = readRoute();
+    normalizeEntry(name);
+    applyRoute(name, true);
+  }
+  function openApp(name) {
+    if (currentApp || navigationPending || name === 'home' || !Object.prototype.hasOwnProperty.call(APP_ROUTES, name)) return;
+    normalizeEntry('home');
+    history.pushState(routeState(name, routeEntry().homeKey), '', routeUrl(name));
+    applyRoute(name, true);
+  }
+  function closeApp() {
+    if (!currentApp || navigationPending) return;
+    resetReturnGesture();
+    var entry = routeEntry();
+    if (ownsEntry(entry, currentApp) && entry.homeBehind) {
+      navigationPending = true;
+      history.back();
+    } else {
+      /* 未受管的地址也只返回本页桌面，绝不盲目 history.back()。 */
+      history.replaceState(routeState('home', newHomeKey()), '', routeUrl('home'));
+      applyRoute('home', true);
+    }
+  }
+  function initNavigation() {
+    var initialHash = location.hash;
+    var name = readRoute();
+    [].slice.call(document.querySelectorAll('.app-panel')).forEach(function (panel) {
+      panel.classList.add('parked');
+      panel.setAttribute('inert', '');
+      panel.setAttribute('aria-hidden', 'true');
+    });
+    normalizeEntry(name);
+    /* 首次无 hash 时仍保留开机、锁屏；明确路由或刷新直接恢复界面。 */
+    applyRoute(name, !!initialHash);
+    window.addEventListener('popstate', syncRoute);
+    window.addEventListener('hashchange', syncRoute);
+    window.addEventListener('pageshow', function (e) { if (e.persisted) syncRoute(); });
+  }
+  [].slice.call(document.querySelectorAll('.icon')).forEach(function (icon) {
+    icon.addEventListener('click', function () { openApp(icon.dataset.app); });
+  });
+  appHomeBar.addEventListener('click', closeApp);
+
+  /* ---------- 返回手势：只按起点分区，内容中间的横滑不参与 ---------- */
+  var returnGesture = null;
+  var suppressClickUntil = 0;
+  var lastTouchAt = 0;
+  var returnGestureFeedback = $('returnGestureFeedback');
+  var returnGestureBottom = $('returnGestureBottom');
+  var EDGE_WIDTH = 24, RETURN_DISTANCE = 60, DIRECTION_RATIO = 1.3;
+
+  function isTextEditor(node) {
+    if (!node || node.nodeType !== 1) return false;
+    if (node.isContentEditable || node.tagName === 'TEXTAREA' || node.tagName === 'SELECT') return true;
+    return node.tagName === 'INPUT' && !/^(range|checkbox|radio|button|submit|reset|file|color|hidden)$/i.test(node.type);
+  }
+  function hasFocusedEditor() {
+    var active = document.activeElement;
+    /* 输入框也可能位于同源故事 iframe 中。 */
+    try {
+      while (active && active.tagName === 'IFRAME' && active.contentDocument) active = active.contentDocument.activeElement;
+    } catch (e) {}
+    return isTextEditor(active);
+  }
+  function resetReturnGesture() {
+    returnGesture = null;
+    if (returnGestureFeedback) returnGestureFeedback.classList.remove('on', 'ready');
+  }
+  function gesturePoint(point, frame) {
+    var pr = phone.getBoundingClientRect();
+    var x = point.clientX, y = point.clientY;
+    if (frame) {
+      var fr = frame.getBoundingClientRect();
+      x = fr.left + x * fr.width / frame.clientWidth;
+      y = fr.top + y * fr.height / frame.clientHeight;
+    }
+    return { x: (x - pr.left) * phone.offsetWidth / pr.width, y: (y - pr.top) * phone.offsetHeight / pr.height };
+  }
+  function startReturnGesture(event, point, sourceWindow, frame, identifier) {
+    resetReturnGesture();
+    if (!currentApp || navigationPending || hasFocusedEditor() || $('dyComments').classList.contains('open')) return;
+    var target = event.target.nodeType === 1 ? event.target : event.target.parentElement;
+    /* 进度条、输入、选择控件始终归应用自身处理；轻触按钮不被拦截。 */
+    if (!target || target.closest('input,textarea,select,[contenteditable]:not([contenteditable="false"]),[data-no-home-gesture]')) return;
+    if (frame && !frame.closest('.app-panel').classList.contains('show')) return;
+    var p = gesturePoint(point, frame);
+    var bottomRect = returnGestureBottom.getBoundingClientRect();
+    var phoneRect = phone.getBoundingClientRect();
+    var bottomHeight = bottomRect.height * phone.offsetHeight / phoneRect.height;
+    var edges = { left: p.x <= EDGE_WIDTH, right: p.x >= phone.offsetWidth - EDGE_WIDTH,
+      bottom: p.y >= phone.offsetHeight - bottomHeight };
+    if (!edges.left && !edges.right && !edges.bottom) return;
+    returnGesture = { app: currentApp, sourceWindow: sourceWindow, frame: frame, identifier: identifier,
+      target: target, start: p, last: p, edges: edges, mode: null, claimed: false };
+  }
+  function cancelContentSwipe(gesture) {
+    /* 识别为返回后通知内容取消已有 swipe，避免抬手又触发故事翻页。
+       只有确定方向后才发送取消，因此边缘竖向滚动和普通轻触仍有效。 */
+    var cancel = new gesture.sourceWindow.Event('touchcancel', { bubbles: true });
+    cancel.phoneReturnCancel = true;
+    cancel.touches = [];
+    cancel.changedTouches = [];
+    gesture.target.dispatchEvent(cancel);
+    clearTimeout(phPress);
+  }
+  function consumeGestureEvent(event) {
+    if (event.cancelable) event.preventDefault();
+    event.stopImmediatePropagation();
+  }
+  function advanceReturnGesture(event, point, sourceWindow) {
+    var gesture = returnGesture;
+    if (!gesture || gesture.sourceWindow !== sourceWindow) return false;
+    if (gesture.app !== currentApp || navigationPending || hasFocusedEditor()) { resetReturnGesture(); return false; }
+    gesture.last = gesturePoint(point, gesture.frame);
+    var dx = gesture.last.x - gesture.start.x, dy = gesture.last.y - gesture.start.y;
+    if (!gesture.mode) {
+      if (Math.max(Math.abs(dx), Math.abs(dy)) < 10) return false;
+      if (Math.abs(dx) > Math.abs(dy) * DIRECTION_RATIO) {
+        if (gesture.edges.left && dx > 0) gesture.mode = 'left';
+        else if (gesture.edges.right && dx < 0) gesture.mode = 'right';
+      } else if (gesture.edges.bottom && -dy > Math.abs(dx) * DIRECTION_RATIO) gesture.mode = 'bottom';
+      /* 第一次明显移动就锁定归属，不允许竖滑/中间横滑后来变成返回。 */
+      if (!gesture.mode) { resetReturnGesture(); return false; }
+      gesture.claimed = true;
+      cancelContentSwipe(gesture);
+    }
+    consumeGestureEvent(event);
+    var distance = gesture.mode === 'left' ? dx : gesture.mode === 'right' ? -dx : -dy;
+    var perpendicular = gesture.mode === 'bottom' ? Math.abs(dx) : Math.abs(dy);
+    gesture.ready = distance >= RETURN_DISTANCE && distance > perpendicular * DIRECTION_RATIO;
+    returnGestureFeedback.textContent = gesture.ready ? '松开返回桌面' : '继续滑动返回桌面';
+    returnGestureFeedback.classList.add('on');
+    returnGestureFeedback.classList.toggle('ready', gesture.ready);
+    return true;
+  }
+  function finishReturnGesture(event, point, sourceWindow) {
+    if (!returnGesture || returnGesture.sourceWindow !== sourceWindow) return;
+    advanceReturnGesture(event, point, sourceWindow);
+    var gesture = returnGesture;
+    if (!gesture) return;
+    var shouldReturn = gesture.claimed && gesture.ready;
+    if (gesture.claimed) {
+      consumeGestureEvent(event);
+      suppressClickUntil = Date.now() + 450;
+    }
+    resetReturnGesture();
+    if (shouldReturn) closeApp();
+  }
+  function findTouch(touches, id) {
+    for (var i = 0; i < touches.length; i++) if (touches[i].identifier === id) return touches[i];
+    return null;
+  }
+  function bindReturnGestures(sourceWindow, frame) {
+    sourceWindow.addEventListener('touchstart', function (e) {
+      lastTouchAt = Date.now();
+      if (e.touches.length !== 1) { resetReturnGesture(); return; }
+      startReturnGesture(e, e.touches[0], sourceWindow, frame, e.touches[0].identifier);
+    }, { capture: true, passive: true });
+    sourceWindow.addEventListener('touchmove', function (e) {
+      if (e.touches.length !== 1) { resetReturnGesture(); return; }
+      if (!returnGesture || returnGesture.sourceWindow !== sourceWindow) return;
+      var touch = findTouch(e.touches, returnGesture.identifier);
+      if (touch) advanceReturnGesture(e, touch, sourceWindow);
+    }, { capture: true, passive: false });
+    sourceWindow.addEventListener('touchend', function (e) {
+      if (!returnGesture || returnGesture.sourceWindow !== sourceWindow) return;
+      var touch = findTouch(e.changedTouches, returnGesture.identifier);
+      if (touch) finishReturnGesture(e, touch, sourceWindow);
+    }, { capture: true, passive: false });
+    sourceWindow.addEventListener('touchcancel', function (e) {
+      if (!e.phoneReturnCancel) {
+        if (returnGesture && returnGesture.claimed) suppressClickUntil = Date.now() + 450;
+        resetReturnGesture();
+      }
+    }, { capture: true, passive: true });
+    /* 桌面鼠标拖动也走同一判定，便于保持两端一致并进行本地检查。 */
+    sourceWindow.addEventListener('mousedown', function (e) {
+      if (e.button === 0 && Date.now() - lastTouchAt > 800) startReturnGesture(e, e, sourceWindow, frame, null);
+    }, true);
+    sourceWindow.addEventListener('mousemove', function (e) {
+      if (returnGesture && returnGesture.identifier === null) advanceReturnGesture(e, e, sourceWindow);
+    }, true);
+    sourceWindow.addEventListener('mouseup', function (e) {
+      if (returnGesture && returnGesture.identifier === null) finishReturnGesture(e, e, sourceWindow);
+    }, true);
+    sourceWindow.addEventListener('click', function (e) {
+      if (Date.now() < suppressClickUntil) consumeGestureEvent(e);
+    }, true);
+    sourceWindow.addEventListener('focusin', updateReturnControls, true);
+    sourceWindow.addEventListener('focusout', function () { setTimeout(updateReturnControls, 0); }, true);
+    sourceWindow.addEventListener('blur', resetReturnGesture);
+  }
+  function prepareAppFrame(frame, name) {
+    frame.title = APP_ROUTES[name] + ' · 婚礼故事';
+    frame.addEventListener('load', function () {
+      /* 同源 iframe 自己接收触摸：在其捕获阶段判定，内容页无需改动。 */
+      try { bindReturnGestures(frame.contentWindow, frame); } catch (e) {}
+      frameCtl('panel-' + name, currentApp === name ? 'resume' : 'pause');
+    });
+  }
+  window.addEventListener('resize', resetReturnGesture);
+  window.addEventListener('orientationchange', resetReturnGesture);
+
+  /* ---------- 日历：月份、年份和日程 ---------- */
+  function calTodayDate() {
+    var date = new Date();
+    date.setHours(0, 0, 0, 0);
+    return date;
+  }
+  var today = calTodayDate();
+  var cal = { y: today.getFullYear(), m: today.getMonth(), view: 'month', previousView: 'month', selected: new Date(today.getTime()) };
+  var weddingDay = new Date(WEDDING.y, WEDDING.m, WEDDING.d);
+  var calDetailFocus = null, calDetailDateValue = null;
+  var calChevron = '<svg viewBox="0 0 16 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 3l9 9-9 9"/></svg>';
+  var calEmptyIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 2v4M16 2v4M9 15h6"/></svg>';
+
+  function calEscape(value) {
+    return String(value).replace(/[&<>"']/g, function (char) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char];
+    });
+  }
+  function calDateLabel(date) {
+    return date.getFullYear() + '年' + (date.getMonth() + 1) + '月' + date.getDate() + '日 ' + WEEK[date.getDay()];
+  }
+  function calWeddingTitle() {
+    return CONFIG.groom + ' & ' + CONFIG.bride + '的婚礼';
+  }
+  function calWeddingTime() {
+    var match = String(CONFIG.timeText).match(/\d{1,2}:\d{2}/);
+    return match ? match[0] : CONFIG.timeText;
+  }
+  function isCalWedding(date) {
+    return date.getTime() === weddingDay.getTime();
+  }
+  function renderCalMonth() {
+    var first = new Date(cal.y, cal.m, 1).getDay();
+    var days = new Date(cal.y, cal.m + 1, 0).getDate();
+    var rows = Math.ceil((first + days) / 7);
+    var html = '';
+    for (var i = 0; i < rows * 7; i++) {
+      var date = new Date(cal.y, cal.m, i - first + 1);
+      var time = date.getTime();
+      var cls = 'cal-day';
+      var isToday = time === today.getTime();
+      var isSelected = time === cal.selected.getTime();
+      var hasEvent = isCalWedding(date);
+      if (date.getMonth() !== cal.m) cls += ' dim';
+      if (date.getDay() === 0 || date.getDay() === 6) cls += ' weekend';
+      if (isSelected) cls += ' selected';
+      if (isToday) cls += ' today';
+      var label = calDateLabel(date) + (isToday ? '，今天' : '') + (hasEvent ? '，' + calWeddingTitle() + '，' + CONFIG.timeText : '，没有日程');
+      html += '<button type="button" class="' + cls + '" data-cal-time="' + time + '" aria-label="' + calEscape(label) + '" aria-pressed="' + isSelected + '"' + (isToday ? ' aria-current="date"' : '') + '>' +
+        '<span class="cal-date">' + date.getDate() + '</span>';
+      if (hasEvent) {
+        html += '<span class="cal-event" aria-hidden="true"><span class="cal-event-title">婚礼 · ' + calEscape(CONFIG.groom + ' & ' + CONFIG.bride) + '</span><span class="cal-event-time">' + calEscape(calWeddingTime()) + '</span></span>';
+      }
+      html += '</button>';
+    }
+    $('calGrid').style.setProperty('--cal-rows', rows);
+    $('calGrid').setAttribute('aria-label', cal.y + '年' + (cal.m + 1) + '月的日期');
+    $('calGrid').innerHTML = html;
+  }
+  function renderCalAgenda() {
+    var el = $('calAgenda');
+    if (cal.y !== WEDDING.y || cal.m !== WEDDING.m) {
+      el.innerHTML = '<div class="cal-agenda-label">本月日程</div><div class="cal-empty">' + calEmptyIcon + '<strong>没有日程</strong><p>' + cal.y + '年' + (cal.m + 1) + '月没有安排</p></div>';
+      return;
+    }
+    el.innerHTML = '<div class="cal-agenda-label">本月日程</div>' +
+      '<h2 class="cal-agenda-date">' + (WEDDING.m + 1) + '月' + WEDDING.d + '日<span>' + WEEK[weddingDay.getDay()] + '</span></h2>' +
+      '<button type="button" class="cal-agenda-event" data-cal-time="' + weddingDay.getTime() + '" aria-label="查看' + calEscape(calWeddingTitle()) + '详情">' +
+      '<span class="cal-agenda-time">' + calEscape(calWeddingTime()) + '</span><span class="cal-agenda-info"><strong>' + calEscape(calWeddingTitle()) + '</strong><small>' + calEscape(CONFIG.venue) + '</small></span>' + calChevron + '</button>';
+  }
+  function renderCalYear() {
+    var html = '';
+    for (var m = 0; m < 12; m++) {
+      var first = new Date(cal.y, m, 1).getDay();
+      var days = new Date(cal.y, m + 1, 0).getDate();
+      html += '<button type="button" class="cal-mini-month" data-cal-month="' + m + '" aria-label="查看' + cal.y + '年' + (m + 1) + '月"><h2>' + (m + 1) + '月</h2><span class="cal-mini-dates" aria-hidden="true">';
+      for (var i = 0; i < first; i++) html += '<span></span>';
+      for (var d = 1; d <= days; d++) {
+        var date = new Date(cal.y, m, d), cls = '';
+        if (date.getDay() === 0 || date.getDay() === 6) cls += ' weekend';
+        if (date.getTime() === today.getTime()) cls += ' today';
+        if (isCalWedding(date)) cls += ' has-event';
+        html += '<span class="' + cls + '">' + d + '</span>';
+      }
+      html += '</span></button>';
+    }
+    $('calYearGrid').setAttribute('aria-label', cal.y + '年的月份');
+    $('calYearGrid').innerHTML = html;
+  }
+  function renderCal() {
+    today = calTodayDate();
+    var isYear = cal.view === 'year';
+    $('calTitle').textContent = isYear ? cal.y + '年' : (cal.m + 1) + '月';
+    $('calYearLabel').textContent = isYear ? '日历' : cal.y;
+    $('calYearButton').setAttribute('aria-label', isYear ? '返回月份' : '查看' + cal.y + '年的月份');
+    $('calYearButton').setAttribute('aria-pressed', String(isYear));
+    $('calPrev').setAttribute('aria-label', isYear ? '上一年' : '上个月');
+    $('calNext').setAttribute('aria-label', isYear ? '下一年' : '下个月');
+    $('calWeek').hidden = cal.view !== 'month';
+    $('calGrid').hidden = cal.view !== 'month';
+    $('calAgenda').hidden = cal.view !== 'list';
+    $('calYearGrid').hidden = !isYear;
+    [['calMonthView', 'month'], ['calListView', 'list']].forEach(function (item) {
+      var active = cal.view === item[1];
+      $(item[0]).classList.toggle('active', active);
+      $(item[0]).setAttribute('aria-pressed', String(active));
+    });
+    if (isYear) renderCalYear();
+    else if (cal.view === 'list') renderCalAgenda();
+    else renderCalMonth();
+    $('calScroll').scrollTop = 0;
+  }
+  function showCalDetail(date, origin) {
+    var hasEvent = isCalWedding(date);
+    cal.selected = new Date(date.getTime());
+    calDetailDateValue = date.getTime();
+    calDetailFocus = origin || document.activeElement;
+    $('calDetailHeading').textContent = hasEvent ? '日程详情' : (date.getMonth() + 1) + '月' + date.getDate() + '日';
+    $('calEventContent').hidden = !hasEvent;
+    $('calEmptyDay').hidden = hasEvent;
+    if (hasEvent) {
+      $('calDetailTitle').textContent = calWeddingTitle();
+      $('calDetailDate').textContent = calDateLabel(date);
+      $('calDetailTime').textContent = CONFIG.timeText;
+      $('calDetailVenue').textContent = CONFIG.venue;
+      $('calDetailAddress').textContent = CONFIG.address;
+    } else $('calEmptyDate').textContent = calDateLabel(date);
+    $('calDetail').hidden = false;
+    ['calHeader', 'calWeek', 'calScroll', 'calToolbar'].forEach(function (id) { $(id).setAttribute('inert', ''); });
+    $('calDetailSheet').querySelector('.cal-sheet-body').scrollTop = 0;
+    $('calDetailClose').focus({ preventScroll: true });
+  }
+  function closeCalDetail(restoreFocus) {
+    if ($('calDetail').hidden) return;
+    $('calDetail').hidden = true;
+    ['calHeader', 'calWeek', 'calScroll', 'calToolbar'].forEach(function (id) { $(id).removeAttribute('inert'); });
+    if (restoreFocus !== false && currentApp === 'calendar') {
+      var fallback = $('calGrid').querySelector('[data-cal-time="' + calDetailDateValue + '"]') || $('calYearButton');
+      var origin = calDetailFocus && calDetailFocus.isConnected && !calDetailFocus.closest('[hidden]') ? calDetailFocus : fallback;
+      origin.focus({ preventScroll: true });
+    }
+    calDetailFocus = null;
+  }
+  function moveCal(direction) {
+    if (cal.view === 'year') cal.y += direction;
+    else {
+      var date = new Date(cal.y, cal.m + direction, 1);
+      cal.y = date.getFullYear(); cal.m = date.getMonth();
+    }
+    renderCal();
+  }
+  function setCalView(view) {
+    cal.view = view;
+    if (view !== 'year') cal.previousView = view;
+    renderCal();
+  }
+  function downloadCalEvent() {
+    function escapeIcs(value) {
+      return String(value).replace(/\\/g, '\\\\').replace(/\r?\n/g, '\\n').replace(/,/g, '\\,').replace(/;/g, '\\;');
+    }
+    var stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z');
+    var ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Wedding Phone//Calendar//ZH', 'CALSCALE:GREGORIAN', 'BEGIN:VEVENT',
+      'UID:wedding-' + CONFIG.dateISO + '@wedding-phone.local', 'DTSTAMP:' + stamp,
+      'DTSTART:' + CONFIG.dateISO + 'T093000Z', 'DTEND:' + CONFIG.dateISO + 'T130000Z',
+      'SUMMARY:' + escapeIcs(calWeddingTitle()), 'LOCATION:' + escapeIcs(CONFIG.venue + ' ' + CONFIG.address),
+      'END:VEVENT', 'END:VCALENDAR', ''].join('\r\n');
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([ics], { type: 'text/calendar;charset=utf-8' }));
+    a.download = '婚礼邀请.ics';
+    document.body.appendChild(a);
+    a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+    toast('日历文件已下载');
+  }
+  $('calPrev').addEventListener('click', function () { moveCal(-1); });
+  $('calNext').addEventListener('click', function () { moveCal(1); });
+  $('calMonthView').addEventListener('click', function () { setCalView('month'); });
+  $('calListView').addEventListener('click', function () { setCalView('list'); });
+  $('calYearButton').addEventListener('click', function () {
+    if (cal.view === 'year') setCalView(cal.previousView);
+    else { cal.previousView = cal.view; setCalView('year'); }
+  });
+  $('calToday').addEventListener('click', function () {
+    var date = calTodayDate();
+    cal.y = date.getFullYear(); cal.m = date.getMonth(); cal.selected = date;
+    setCalView('month');
+  });
+  $('calHome').addEventListener('click', closeApp);
+  $('calGrid').addEventListener('click', function (e) {
+    var button = e.target.closest('button[data-cal-time]');
+    if (!button) return;
+    var date = new Date(Number(button.dataset.calTime));
+    cal.y = date.getFullYear(); cal.m = date.getMonth(); cal.selected = date;
+    renderCal();
+    showCalDetail(date, $('calGrid').querySelector('[data-cal-time="' + date.getTime() + '"]'));
+  });
+  $('calGrid').addEventListener('keydown', function (e) {
+    var button = e.target.closest('button[data-cal-time]');
+    var offset = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7 }[e.key];
+    if (!button || !offset) return;
+    e.preventDefault();
+    var date = new Date(Number(button.dataset.calTime));
+    date.setDate(date.getDate() + offset);
+    cal.y = date.getFullYear(); cal.m = date.getMonth(); cal.selected = date;
+    renderCal();
+    $('calGrid').querySelector('[data-cal-time="' + date.getTime() + '"]').focus({ preventScroll: true });
+  });
+  $('calAgenda').addEventListener('click', function (e) {
+    var button = e.target.closest('button[data-cal-time]');
+    if (button) showCalDetail(new Date(Number(button.dataset.calTime)), button);
+  });
+  $('calYearGrid').addEventListener('click', function (e) {
+    var button = e.target.closest('button[data-cal-month]');
+    if (!button) return;
+    cal.m = Number(button.dataset.calMonth);
+    setCalView('month');
+  });
+  $('calDetailClose').addEventListener('click', function () { closeCalDetail(); });
+  $('calDetailBackdrop').addEventListener('click', function () { closeCalDetail(); });
+  $('calIcs').addEventListener('click', downloadCalEvent);
+  $('calInvite').addEventListener('click', function () {
+    closeCalDetail(false);
+    hideApp();
+    openApp('safari');
+  });
+  $('calDetail').addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') { e.preventDefault(); closeCalDetail(); return; }
+    if (e.key !== 'Tab') return;
+    var buttons = [].slice.call($('calDetailSheet').querySelectorAll('button')).filter(function (button) { return !button.closest('[hidden]'); });
+    var first = buttons[0], last = buttons[buttons.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  });
+
+  /* ---------- 计算器 ---------- */
+  var calcSt = { cur: '0', stored: null, op: null, fresh: true };
+  var calcDisplay = $('calcDisplay');
+
+  function calcShow(v) {
+    calcDisplay.textContent = v;
+    calcDisplay.classList.toggle('small', v.length > 9 && v.length <= 12);
+    calcDisplay.classList.toggle('xsmall', v.length > 12);
+  }
+  function calcNum(x) {
+    if (!isFinite(x)) return '错误';
+    var s = String(x);
+    if (s.length > 9) s = x.toPrecision(6).replace(/\.?0+e/, 'e').replace(/\.?0+$/, '');
+    return s;
+  }
+  function calcApply(a, b, op) {
+    if (op === '+') return a + b;
+    if (op === '-') return a - b;
+    if (op === '*') return a * b;
+    if (op === '/') return b === 0 ? NaN : a / b;
+    return b;
+  }
+  $('calcGrid').addEventListener('click', function (e) {
+    var k = e.target.dataset && e.target.dataset.k;
+    if (!k) return;
+    var st = calcSt;
+    if (/^[0-9.]$/.test(k)) {
+      if (st.fresh) { st.cur = k === '.' ? '0.' : k; st.fresh = false; }
+      else if (k !== '.' || st.cur.indexOf('.') < 0) st.cur = st.cur === '0' && k !== '.' ? k : st.cur + k;
+      if (st.cur.length > 12) st.cur = st.cur.slice(0, 12);
+      calcShow(st.cur);
+      return;
+    }
+    if (k === 'ac') { calcSt = { cur: '0', stored: null, op: null, fresh: true }; calcShow('0'); markOp(null); return; }
+    if (k === 'neg') { st.cur = st.cur.charAt(0) === '-' ? st.cur.slice(1) : '-' + st.cur; calcShow(st.cur); return; }
+    if (k === 'pct') { st.cur = calcNum(parseFloat(st.cur) / 100); calcShow(st.cur); return; }
+    if (k === '=') {
+      /* 彩蛋：输入 1108 按 = */
+      if (st.cur === '1108') {
+        calcSt = { cur: '0', stored: null, op: null, fresh: true }; markOp(null);
+        calcShow('在一起 1108 天 ❤');
+        return;
+      }
+      if (st.op === null || st.stored === null) return;
+      var r = calcApply(st.stored, parseFloat(st.cur), st.op);
+      calcSt = { cur: calcNum(r), stored: null, op: null, fresh: true };
+      calcShow(calcSt.cur); markOp(null);
+      return;
+    }
+    /* 运算符 */
+    var v = parseFloat(st.cur);
+    if (st.op !== null && !st.fresh && st.stored !== null) {
+      v = calcApply(st.stored, v, st.op);
+      calcShow(calcNum(v));
+    }
+    calcSt = { cur: calcNum(v), stored: v, op: k, fresh: true };
+    markOp(k);
+  });
+  function markOp(k) {
+    [].slice.call(document.querySelectorAll('.calc-grid .op')).forEach(function (b) {
+      b.classList.toggle('on', b.dataset.k === k);
+    });
+  }
+
+  /* ---------- 音乐 ---------- */
+  var TRACKS = [
+    { src: '../wumu/assets/a-thousand-years.mp3', title: 'A Thousand Years', artist: 'Christina Perri', cover: '../wumu/assets/night-market.webp' },
+    { src: '../chinese/assets/river-flows-in-you.mp3', title: 'River Flows in You', artist: 'Yiruma', cover: '../wumu/assets/panda-zoo.webp' }
+  ];
+  var audio = new Audio();
+  var trackIdx = 0, seekDrag = false;
+  var panelMusic = $('panel-music');
+
+  function loadTrack(i, autoplay) {
+    trackIdx = (i + TRACKS.length) % TRACKS.length;
+    var t = TRACKS[trackIdx];
+    audio.src = t.src;
+    $('musicTitle').textContent = t.title;
+    $('musicArtist').textContent = t.artist;
+    $('musicCover').src = t.cover;
+    [].slice.call($('musicList').children).forEach(function (b, j) {
+      b.classList.toggle('on', j === trackIdx);
+    });
+    if (autoplay) audio.play().catch(function () {});
+  }
+  function fmtTime(s) {
+    if (!isFinite(s)) return '0:00';
+    return Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0');
+  }
+  var PLAY_PATH = 'M7 4.5v15l13-7.5z';
+  var PAUSE_PATH = 'M6 4h4v16H6zM14 4h4v16h-4z';
+  function syncPlayIcon() {
+    $('musicPlayIcon').firstElementChild.setAttribute('d', audio.paused ? PLAY_PATH : PAUSE_PATH);
+    panelMusic.classList.toggle('playing', !audio.paused);
+  }
+  $('musicPlay').addEventListener('click', function () {
+    if (!audio.src) loadTrack(0, true);
+    else if (audio.paused) audio.play().catch(function () {});
+    else audio.pause();
+  });
+  $('musicPrev').addEventListener('click', function () { loadTrack(trackIdx - 1, true); });
+  $('musicNext').addEventListener('click', function () { loadTrack(trackIdx + 1, true); });
+  audio.addEventListener('play', syncPlayIcon);
+  audio.addEventListener('pause', syncPlayIcon);
+  audio.addEventListener('timeupdate', function () {
+    if (seekDrag) return;
+    $('musicCur').textContent = fmtTime(audio.currentTime);
+    $('musicDur').textContent = fmtTime(audio.duration);
+    $('musicSeek').value = audio.duration ? Math.round(audio.currentTime / audio.duration * 1000) : 0;
+  });
+  $('musicSeek').addEventListener('input', function () { seekDrag = true; });
+  $('musicSeek').addEventListener('change', function () {
+    if (audio.duration) audio.currentTime = $('musicSeek').value / 1000 * audio.duration;
+    seekDrag = false;
+  });
+  $('musicList').innerHTML = TRACKS.map(function (t, i) {
+    return '<button type="button" data-i="' + i + '"><span>' + t.title + '</span><span>' + t.artist + '</span></button>';
+  }).join('');
+  $('musicList').addEventListener('click', function (e) {
+    var b = e.target.closest('button');
+    if (b) loadTrack(+b.dataset.i, true);
+  });
+
+  /* ---------- 电话 ---------- */
+  var phNumber = '18483640431';
+  $('phKeypad').addEventListener('click', function (e) {
+    var b = e.target.closest('.ph-key');
+    if (!b || phNumber.length >= 15) return;
+    phNumber += b.dataset.d;
+    $('phDisplay').textContent = phNumber;
+  });
+  $('phCall').addEventListener('click', function () {
+    location.href = 'tel:' + phNumber;
+  });
+  /* 长按显示区清空重拨 */
+  var phPress = 0;
+  $('phDisplay').addEventListener('touchstart', function () {
+    phPress = setTimeout(function () { phNumber = ''; $('phDisplay').textContent = ''; }, 600);
+  }, { passive: true });
+  $('phDisplay').addEventListener('touchend', function () { clearTimeout(phPress); }, { passive: true });
+
+  /* ---------- 短信 ---------- */
+  function smsReply() {
+    var v = $('smsInput').value.trim();
+    if (!v) return;
+    var body = $('smsBody');
+    var out = document.createElement('div');
+    out.className = 'sms-bubble out';
+    out.textContent = v;
+    body.appendChild(out);
+    $('smsInput').value = '';
+    body.scrollTop = body.scrollHeight;
+    setTimeout(function () {
+      var back = document.createElement('div');
+      back.className = 'sms-bubble in';
+      back.textContent = '收到！10 月 18 日见 ❤';
+      body.appendChild(back);
+      body.scrollTop = body.scrollHeight;
+    }, 1200);
+  }
+  $('smsSend').addEventListener('click', smsReply);
+  $('smsInput').addEventListener('keydown', function (e) { if (e.key === 'Enter') smsReply(); });
+
+  /* ---------- 抖音 · 小李可可特供版 ---------- */
+  var dyReady = false;
+  function bootDouyin() {
+    if (dyReady) return;
+    dyReady = true;
+    var f = document.createElement('iframe');
+    f.className = 'dy-video';
+    prepareAppFrame(f, 'douyin');
+    f.src = '../wumu/index.html?embed=1';
+    f.setAttribute('allow', 'autoplay');
+    var panel = $('panel-douyin');
+    panel.insertBefore(f, panel.firstChild);
+  }
+
+  var liked = false, likeCount = 1108;
+  $('dyLike').addEventListener('click', function (e) {
+    liked = !liked;
+    $('dyLike').classList.toggle('liked', liked);
+    likeCount += liked ? 1 : -1;
+    $('dyLikeCount').textContent = likeCount;
+    if (!liked) return;
+    var rail = $('dyLike').getBoundingClientRect();
+    var pr = phone.getBoundingClientRect();
+    for (var i = 0; i < 6; i++) {
+      var s = document.createElement('span');
+      s.className = 'dy-burst';
+      s.textContent = '❤';
+      s.style.color = '#fe2c55';
+      s.style.left = (rail.left - pr.left + rail.width / 2 - 11) + 'px';
+      s.style.top = (rail.top - pr.top) + 'px';
+      s.style.setProperty('--bx', (Math.random() * 90 - 60) + 'px');
+      s.style.setProperty('--by', (-50 - Math.random() * 70) + 'px');
+      phone.appendChild(s);
+      (function (node) { setTimeout(function () { if (node.parentNode) node.parentNode.removeChild(node); }, 950); })(s);
+    }
+  });
+
+  var COMMENTS = [
+    /* 漫威 */
+    ['钢铁侠', '贾维斯，把这对新人的婚礼列入史塔克赞助名单。不用谢，我向来这么大方。', 'ironman'],
+    ['奇异博士', '我看了 14000605 种未来，你们走到一起的结局，一个都不少。', 'strange'],
+    ['蜘蛛侠', '哇哦哇哦哇哦！需要我用蛛丝帮你们挂彩带吗？免费的！随叫随到！', 'spiderman'],
+    ['死侍', '等一下，这请柬的制作预算比我整部电影还高？？', 'deadpool'],
+    ['雷神索尔', '阿斯加德向你们致意！这杯喜酒，吾先干为敬！', 'thor'],
+    ['美国队长', '我可以这样祝福一整天。', 'cap'],
+    /* 小黄人 */
+    ['小黄人鲍勃', 'Bello！Papaya！Tulaliloo ti amo！（翻译：他超爱）', 'bob'],
+    ['格鲁', '我原本计划偷走月亮……现在改主意了，借给你们当婚礼的灯。', 'gru'],
+    ['小黄人斯图尔特', 'Bananaaaa！（随礼一串最甜的香蕉）', 'stuart'],
+    /* 原神 */
+    ['钟离', '以普遍理性而论，这桩婚事，是一份值得守护一生的契约。', 'zhongli'],
+    ['温迪', '哎嘿～要不要我为婚礼写一首情诗？报酬嘛……苹果酒管够就行。', 'venti'],
+    ['派蒙', '呜哇！喜宴上会有甜甜花酿鸡吗？派蒙一定到！一定！', 'paimon'],
+    ['胡桃', '恭喜恭喜！本堂主的业务嘛……祝你们永远用不上，嘿嘿。', 'hutao'],
+    ['可莉', '可莉想去看新娘子！保证不带蹦蹦炸弹……大概！', 'klee'],
+    /* LOL */
+    ['亚索', '死亡如风，常伴吾身；而今日，爱伴你身。哈撒给，祝幸福。', 'yasuo'],
+    ['金克丝', '婚礼？！我要带三门礼炮来！不，四门！砰砰砰砰！', 'jinx'],
+    ['盖伦', '德玛西亚！愿正义与爱情，与你们同在。', 'garen'],
+    ['提莫', '提莫队长正在待命！要在婚礼路上种满蘑菇吗？……开玩笑的啦。', 'teemo'],
+    ['阿狸', '这一波，是心动的味道呢～', 'ahri'],
+    ['悠米', '喵！悠米要坐在全场最强的两个人身上！就是你们！', 'yuumi'],
+    /* 周星驰宇宙 */
+    ['至尊宝', '曾经有一份真诚的爱情……算了，这次不用后悔。祝你们，一万年。', 'zhizunbao'],
+    ['唐伯虎', '别人笑我太疯癫，我笑他人看不穿。这碗狗粮，我先干为敬。', 'tangbohu'],
+    ['尹天仇', '其实，我是一个演员。但你们俩这出戏，没有演技，全是感情。', 'yintianchou'],
+    ['凌凌漆', '国家有一项一辈子的任务要派给你们：永远在一起。', 'linglingqi'],
+    ['周星星', '这个案子我查了很久，结论只有四个字：天生一对。', 'zhouxingxing'],
+    /* 给阿嬷的情书 */
+    ['谢南枝', '见字如面。写了一辈子的信，最想写的一句是：祝你们白头偕老。', 'xienanzhi'],
+    ['叶淑柔', '当年等一封信要一个月。你们不用等，一转身就能抱到，真好。', 'yeshurou'],
+    ['郑木生', '信走得慢，但心意不慢。隔着南洋我都听见了——恭喜。', 'musheng']
+  ];
+  var AVA_COLORS = ['#fe2c55', '#25f4ee', '#ff9f0a', '#5e5ce6', '#30d158', '#ff453a', '#bf5af2', '#64d2ff'];
+  var cmtCount = 1314;
+
+  function addComment(who, txt, mine, avatar) {
+    var item = document.createElement('div');
+    item.className = 'dy-cmt-item';
+    var avaHtml = avatar
+      ? '<img src="assets/avatars/' + avatar + '.webp" alt="">'
+      : who.charAt(0);
+    var color = mine ? '#fe2c55' : AVA_COLORS[who.charCodeAt(0) % AVA_COLORS.length];
+    item.innerHTML = '<div class="ava" style="background:' + color + '">' + avaHtml + '</div>' +
+      '<div><div class="who">' + who + '</div><div class="txt"></div></div>';
+    item.querySelector('.txt').textContent = txt;
+    var list = $('dyCmtList');
+    if (mine) list.insertBefore(item, list.firstChild);
+    else list.appendChild(item);
+  }
+  /* 打乱顺序，每次打开都不一样 */
+  for (var si = COMMENTS.length - 1; si > 0; si--) {
+    var sj = Math.floor(Math.random() * (si + 1));
+    var tmp = COMMENTS[si]; COMMENTS[si] = COMMENTS[sj]; COMMENTS[sj] = tmp;
+  }
+  COMMENTS.forEach(function (c) { addComment(c[0], c[1], false, c[2]); });
+
+  /* 评论抽屉打开时收起底部返回条，避免遮挡输入框 */
+  $('dyCmt').addEventListener('click', function () {
+    $('dyComments').classList.add('open');
+    resetReturnGesture();
+    updateReturnControls();
+  });
+  $('dyCmtClose').addEventListener('click', function () {
+    $('dyComments').classList.remove('open');
+    updateReturnControls();
+  });
+  function sendComment() {
+    var v = $('dyCmtInput').value.trim();
+    if (!v) return;
+    addComment('我', v, true);
+    $('dyCmtInput').value = '';
+    $('dyCmtCount').textContent = ++cmtCount;
+    toast('祝福已送上 ❤');
+  }
+  $('dyCmtSend').addEventListener('click', sendComment);
+  $('dyCmtInput').addEventListener('keydown', function (e) { if (e.key === 'Enter') sendComment(); });
+
+  $('dyShare').addEventListener('click', function () {
+    var url = location.href;
+    function done() { toast('链接已复制，快分享给亲友吧'); }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(done, function () { legacyCopy(url); done(); });
+    } else { legacyCopy(url); done(); }
+  });
+  function legacyCopy(text) {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;opacity:0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); } catch (e) {}
+    document.body.removeChild(ta);
+  }
+  bindReturnGestures(window, null);
+  initNavigation();
+})();
+</script>
+</body>
+</html>
